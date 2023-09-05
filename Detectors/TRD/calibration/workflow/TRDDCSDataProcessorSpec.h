@@ -94,10 +94,10 @@ class TRDDCSDataProcessor : public o2::framework::Task
       aliasesFloat.insert(aliasesFloat.end(), {"trd_hvAnodeImon[00..539]", "trd_hvAnodeUmon[00..539]", "trd_hvDriftImon[00..539]", "trd_hvDriftUmon[00..539]"});
       aliasesFloat.insert(aliasesFloat.end(), {"trd_aliEnvTempCavern", "trd_aliEnvTempP2"});
       aliasesFloat.insert(aliasesFloat.end(), {"trd_aliEnvPressure00", "trd_aliEnvPressure01", "trd_aliEnvPressure02"});
-      // aliasesFloat.insert(aliasesFloat.end(), {"trd_cavernHumidity", "trd_fedEnvTemp[00..539]"});
+      aliasesFloat.insert(aliasesFloat.end(), {"trd_cavernHumidity", "trd_fedEnvTemp[00..539]"});
       aliasesInt.insert(aliasesInt.end(), {"trd_runNo", "trd_runType"});
-      // aliasesInt.insert(aliasesInt.end(), {"trd_fedChamberStatus[00..539]"});
-      // aliasesString.insert(aliasesString.end(), {"trd_fedCFGtag[00..539]"});
+      aliasesInt.insert(aliasesInt.end(), {"trd_fedChamberStatus[00..539]"});
+      aliasesString.insert(aliasesString.end(), {"trd_fedCFGtag[00..539]"});
 
       for (const auto& i : o2::dcs::expandAliases(aliasesFloat)) {
         vect.emplace_back(i, o2::dcs::DPVAL_DOUBLE);
