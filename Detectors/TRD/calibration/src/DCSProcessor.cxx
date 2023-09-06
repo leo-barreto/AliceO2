@@ -398,7 +398,7 @@ bool DCSProcessor::updateRunDPsCCDB()
 
   for (const auto& it : mPids) {
     const auto& type = it.first.get_type();
-    if (type == o2::dcs::DPVAL_DOUBLE) {
+    if (type == o2::dcs::DPVAL_INT) {
       if (std::strstr(it.first.get_alias(), "trd_run") != nullptr) {
         if (it.second == true) { // we processed the DP at least 1x
           retVal = true;
@@ -410,7 +410,7 @@ bool DCSProcessor::updateRunDPsCCDB()
     }
   }
   std::map<std::string, std::string> md;
-  md["responsible"] = "Ole Schmidt";
+  md["responsible"] = "Leonardo Barreto";
   o2::calibration::Utils::prepareCCDBobjectInfo(mTRDDCSRun, mCcdbRunDPsInfo, "TRD/Calib/DCSDPsRun", md, mRunStartTS, mRunEndTS);
 
   return retVal;
