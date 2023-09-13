@@ -192,6 +192,19 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
           runType = o2::dcs::getValue<int32_t>(dpcom);
         }
       }
+
+      if (std::strstr(dpid.get_alias(), "trd_fedChamberStatus") != nullptr) { // DP is trd_fedChamberStatus 
+        if (!mFedStartTSSet) {
+          mFedStartTS = mCurrentTS;
+          mFedStartTSSet = true;
+        }
+        //auto& dpInfoFed = mTRDDCSFed[dpid];
+        //if (dpInfoFed.nPoints == 0 || etime != mLastDPTimeStamps[dpid]) {
+        //  // only add data point in case it was not already read before
+        //  dpInfoFed.addPoint(o2::dcs::getValue<int>(dpcom), etime);
+        //  mLastDPTimeStamps[dpid] = etime;
+        //}
+      }  
     }
 
     if (type == DPVAL_STRING) {
@@ -416,6 +429,34 @@ bool DCSProcessor::updateRunDPsCCDB()
   return retVal;
 }
 
+bool DCSProcessor::updateFedDPsCCDB()
+{
+  // here we create the object containing the run data points to then be sent to CCDB
+  LOG(info) << "Preparing CCDB object for TRD fed DPs";
+
+  bool retVal = false; // set to 'true' in case at least one DP for run has been processed
+
+  for (const auto& it : mPids) {
+    const auto& type = it.first.get_type();
+    if (type == o2::dcs::DPVAL_INT) {
+      if (std::strstr(it.first.get_alias(), "trd_fed") != nullptr) {
+        if (it.second == true) { // we processed the DP at least 1x
+          retVal = true;
+        }
+        if (mVerbosity > 0) {
+          LOG(info) << "PID = " << it.first.get_alias() << ". Value = " << mTRDDCSFed[it.first];
+        }
+      }
+    }
+  }
+  std::map<std::string, std::string> md;
+  md["responsible"] = "Leonardo Barreto";
+  // TODO: define mFedStartTS and mFedEndTS, use same setup as env for now
+  o2::calibration::Utils::prepareCCDBobjectInfo(mTRDDCSFed, mCcdbFedDPsInfo, "TRD/Calib/DCSDPsFed", md, mFedStartTS, mFedStartTS + 3 * o2::ccdb::CcdbObjectInfo::DAY);
+
+  return retVal;
+}
+
 void DCSProcessor::clearCurrentsDPsInfo()
 {
   mTRDDCSCurrents.clear();
@@ -469,7 +510,7 @@ void DCSProcessor::clearEnvDPsInfo()
 {
   mTRDDCSEnv.clear();
   mEnvStartTSSet = false;
-  // reset the 'processed' flags for the gas DPs
+  // reset the 'processed' flags for the env DPs
   for (auto& it : mPids) {
     const auto& type = it.first.get_type();
     if (type == o2::dcs::DPVAL_DOUBLE) {
@@ -485,11 +526,26 @@ void DCSProcessor::clearRunDPsInfo()
   mTRDDCSRun.clear();
   mRunStartTSSet = false;
   mShouldUpdateRun = false;
-  // reset the 'processed' flags for the gas DPs
+  // reset the 'processed' flags for the run DPs
   for (auto& it : mPids) {
     const auto& type = it.first.get_type();
-    if (type == o2::dcs::DPVAL_DOUBLE) {
+    if (type == o2::dcs::DPVAL_INT) {
       if (std::strstr(it.first.get_alias(), "trd_run") != nullptr) {
+        it.second = false;
+      }
+    }
+  }
+}
+
+void DCSProcessor::clearFedDPsInfo()
+{
+  mTRDDCSFed.clear();
+  mFedStartTSSet = false;
+  // reset the 'processed' flags for the fed DPs
+  for (auto& it : mPids) {
+    const auto& type = it.first.get_type();
+    if (type == o2::dcs::DPVAL_INT) {
+      if (std::strstr(it.first.get_alias(), "trd_fed") != nullptr) {
         it.second = false;
       }
     }
