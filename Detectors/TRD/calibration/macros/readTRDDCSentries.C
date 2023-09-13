@@ -31,6 +31,7 @@ void readTRDDCSentries(std::string ccdb = "http://localhost:8080", long ts = -1)
   ccdbmgr.setURL(ccdb.c_str()); // comment out this line to read from production CCDB instead of a local one, or adapt ccdb string
   if (ts < 0) {
     ts = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    std::cout << "Timestamp: " << ts << std::endl;
   }
   ccdbmgr.setTimestamp(ts);
 
@@ -57,6 +58,27 @@ void readTRDDCSentries(std::string ccdb = "http://localhost:8080", long ts = -1)
   for (const auto& entry : *cal) {
     std::cout << entry.first << std::endl;
     entry.second.print();
+  }
+  std::cout << std::endl;
+
+  // Access Run DPs, i.e. same thing but for DCSDPsEnv
+  auto calenv = ccdbmgr.get<unordered_map<o2::dcs::DataPointIdentifier, o2::trd::TRDDCSMinMaxMeanInfo>>("TRD/Calib/DCSDPsEnv");
+
+  std::cout << "Print all objects from the map (DCSPDsEnv), together with their DataPointIdentifier:" << std::endl;
+  for (const auto& entry : *calenv) {
+    std::cout << "id =  " << entry.first << std::endl;
+    entry.second.print();
+    //std::cout << "value =  " << entry.second << std::endl;
+  }
+  std::cout << std::endl;
+  
+  // Access Run DPs, i.e. same thing but for DCSDPsRun
+  auto calrun = ccdbmgr.get<unordered_map<o2::dcs::DataPointIdentifier, int>>("TRD/Calib/DCSDPsRun");
+
+  std::cout << "Print all objects from the map (DCSPDsRun), together with their DataPointIdentifier:" << std::endl;
+  for (const auto& entry : *calrun) {
+    std::cout << "id =  " << entry.first << std::endl;
+    std::cout << "value =  " << entry.second << std::endl;
   }
   std::cout << std::endl;
 
