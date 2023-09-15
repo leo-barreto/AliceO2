@@ -126,8 +126,11 @@ class TRDDCSDataProcessor : public o2::framework::Task
     mTimerVoltages = mTimerGas;
     mTimerCurrents = mTimerGas;
     mTimerEnv = mTimerGas;
-    // LB: new DP for fedChamberStatus
-    mTimerFed = mTimerGas;
+    // LB: new DPs for Fed and Cavern
+    mTimerFedChamberStatus = mTimerGas;
+    mTimerFedCFGtag = mTimerGas;
+    mTimerFedEnvTemp = mTimerGas;
+    mTimerCavern = mTimerGas;
 
     mReportTiming = ic.options().get<bool>("report-timing") || verbosity > 0;
   }
@@ -171,11 +174,32 @@ class TRDDCSDataProcessor : public o2::framework::Task
       mTimerEnv = timeNow;
     }
 
-    // LB: new DP for fedChamberStatus
-    auto elapsedTimeFed = timeNow - mTimerFed; // in ns
-    if (elapsedTimeFed.count() * 1e-9 >= mFedDPsUpdateInterval) {
-      sendDPsoutputFed(pc.outputs());
-      mTimerFed = timeNow;
+    // LB: new DP for FedChamberStatus
+    auto elapsedTimeFedChamberStatus = timeNow - mTimerFedChamberStatus; // in ns
+    if (elapsedTimeFedChamberStatus.count() * 1e-9 >= mFedChamberStatusDPsUpdateInterval) {
+      sendDPsoutputFedChamberStatus(pc.outputs());
+      mTimerFedChamberStatus = timeNow;
+    }
+    
+    // LB: new DP for FedCFGtag
+    auto elapsedTimeFedCFGtag = timeNow - mTimerFedCFGtag; // in ns
+    if (elapsedTimeFedCFGtag.count() * 1e-9 >= mFedCFGtagDPsUpdateInterval) {
+      sendDPsoutputFedCFGtag(pc.outputs());
+      mTimerFedCFGtag = timeNow;
+    }
+    
+    // LB: new DP for FedEnvTemp
+    auto elapsedTimeFedEnvTemp = timeNow - mTimerFedEnvTemp; // in ns
+    if (elapsedTimeFedEnvTemp.count() * 1e-9 >= mFedEnvTempDPsUpdateInterval) {
+      sendDPsoutputFedEnvTemp(pc.outputs());
+      mTimerFedEnvTemp = timeNow;
+    }
+    
+    // LB: new DP for Cavern
+    auto elapsedTimeCavern = timeNow - mTimerCavern; // in ns
+    if (elapsedTimeCavern.count() * 1e-9 >= mCavernDPsUpdateInterval) {
+      sendDPsoutputCavern(pc.outputs());
+      mTimerCavern = timeNow;
     }
 
     if (mProcessor->shouldUpdateRun()) {
@@ -194,8 +218,11 @@ class TRDDCSDataProcessor : public o2::framework::Task
     sendDPsoutputCurrents(ec.outputs());
     sendDPsoutputEnv(ec.outputs());
     sendDPsoutputRun(ec.outputs());
-    // LB: new DP for fedChamberStatus
-    sendDPsoutputFed(ec.outputs());
+    // LB: new DPs for Fed and Cavern
+    sendDPsoutputFedChamberStatus(ec.outputs());
+    sendDPsoutputFedCFGtag(ec.outputs());
+    sendDPsoutputFedEnvTemp(ec.outputs());
+    sendDPsoutputCavern(ec.outputs());
   }
 
  private:
@@ -205,16 +232,22 @@ class TRDDCSDataProcessor : public o2::framework::Task
   std::chrono::high_resolution_clock::time_point mTimerVoltages;
   std::chrono::high_resolution_clock::time_point mTimerCurrents;
   std::chrono::high_resolution_clock::time_point mTimerEnv;
-  // LB: new DP for fedChamberStatus
-  std::chrono::high_resolution_clock::time_point mTimerFed;
+  // LB: new DPs for Fed and Cavern
+  std::chrono::high_resolution_clock::time_point mTimerFedChamberStatus;
+  std::chrono::high_resolution_clock::time_point mTimerFedCFGtag;
+  std::chrono::high_resolution_clock::time_point mTimerFedEnvTemp;
+  std::chrono::high_resolution_clock::time_point mTimerCavern;
 
   int64_t mGasDPsUpdateInterval;
   int64_t mVoltagesDPsUpdateInterval;
   int64_t mCurrentsDPsUpdateInterval;
   int64_t mMinUpdateIntervalU;
   int64_t mEnvDPsUpdateInterval;
-  // LB: new DP for fedChamberStatus
-  int64_t mFedDPsUpdateInterval;
+  // LB: new DPs for Fed and Cavern
+  int64_t mFedChamberStatusDPsUpdateInterval;
+  int64_t mFedCFGtagDPsUpdateInterval;
+  int64_t mFedEnvTempDPsUpdateInterval;
+  int64_t mCavernDPsUpdateInterval;
 
   void sendDPsoutputVoltages(DataAllocator& output)
   {
@@ -309,25 +342,86 @@ class TRDDCSDataProcessor : public o2::framework::Task
     }
   }
 
-  // LB: new DP for fedChamberStatus
+  // LB: new DP for FedChamberStatus
   //________________________________________________________________
-  void sendDPsoutputFed(DataAllocator& output)
+  void sendDPsoutputFedChamberStatus(DataAllocator& output)
   {
     // extract CCDB infos and calibration object for DPs
-    if (mProcessor->updateFedDPsCCDB()) {
-      const auto& payload = mProcessor->getTRDFedDPsInfo();
-      auto& info = mProcessor->getccdbFedDPsInfo();
+    if (mProcessor->updateFedChamberStatusDPsCCDB()) {
+      const auto& payload = mProcessor->getTRDFedChamberStatusDPsInfo();
+      auto& info = mProcessor->getccdbFedChamberStatusDPsInfo();
       auto image = o2::ccdb::CcdbApi::createObjectImage(&payload, &info);
       LOG(info) << "Sending object " << info.getPath() << "/" << info.getFileName() << " of size " << image->size()
                 << " bytes, valid for " << info.getStartValidityTimestamp() << " : " << info.getEndValidityTimestamp();
       output.snapshot(Output{o2::calibration::Utils::gDataOriginCDBPayload, "TRD_DCSFedDPs", 0}, *image.get());
       output.snapshot(Output{o2::calibration::Utils::gDataOriginCDBWrapper, "TRD_DCSFedDPs", 0}, info);
-      mProcessor->clearFedDPsInfo();
+      mProcessor->clearFedChamberStatusDPsInfo();
     } else {
-      auto& info = mProcessor->getccdbFedDPsInfo();
+      auto& info = mProcessor->getccdbFedChamberStatusDPsInfo();
       LOG(info) << "Not sending object " << info.getPath() << "/" << info.getFileName() << " since no DPs were processed for it";
     }
   }
+
+  // LB: new DP for FedCFGtag
+  //________________________________________________________________
+  void sendDPsoutputFedCFGtag(DataAllocator& output)
+  {
+    // extract CCDB infos and calibration object for DPs
+    if (mProcessor->updateFedCFGtagDPsCCDB()) {
+      const auto& payload = mProcessor->getTRDFedCFGtagDPsInfo();
+      auto& info = mProcessor->getccdbFedCFGtagDPsInfo();
+      auto image = o2::ccdb::CcdbApi::createObjectImage(&payload, &info);
+      LOG(info) << "Sending object " << info.getPath() << "/" << info.getFileName() << " of size " << image->size()
+                << " bytes, valid for " << info.getStartValidityTimestamp() << " : " << info.getEndValidityTimestamp();
+      output.snapshot(Output{o2::calibration::Utils::gDataOriginCDBPayload, "TRD_DCSFedDPs", 0}, *image.get());
+      output.snapshot(Output{o2::calibration::Utils::gDataOriginCDBWrapper, "TRD_DCSFedDPs", 0}, info);
+      mProcessor->clearFedCFGtagDPsInfo();
+    } else {
+      auto& info = mProcessor->getccdbFedCFGtagDPsInfo();
+      LOG(info) << "Not sending object " << info.getPath() << "/" << info.getFileName() << " since no DPs were processed for it";
+    }
+  }
+
+  // LB: new DP for FedEnvTemp
+  //________________________________________________________________
+  void sendDPsoutputFedEnvTemp(DataAllocator& output)
+  {
+    // extract CCDB infos and calibration object for DPs
+    if (mProcessor->updateFedEnvTempDPsCCDB()) {
+      const auto& payload = mProcessor->getTRDFedEnvTempDPsInfo();
+      auto& info = mProcessor->getccdbFedEnvTempDPsInfo();
+      auto image = o2::ccdb::CcdbApi::createObjectImage(&payload, &info);
+      LOG(info) << "Sending object " << info.getPath() << "/" << info.getFileName() << " of size " << image->size()
+                << " bytes, valid for " << info.getStartValidityTimestamp() << " : " << info.getEndValidityTimestamp();
+      output.snapshot(Output{o2::calibration::Utils::gDataOriginCDBPayload, "TRD_DCSFedDPs", 0}, *image.get());
+      output.snapshot(Output{o2::calibration::Utils::gDataOriginCDBWrapper, "TRD_DCSFedDPs", 0}, info);
+      mProcessor->clearFedEnvTempDPsInfo();
+    } else {
+      auto& info = mProcessor->getccdbFedEnvTempDPsInfo();
+      LOG(info) << "Not sending object " << info.getPath() << "/" << info.getFileName() << " since no DPs were processed for it";
+    }
+  }
+
+  // LB: new DP for Cavern
+  //________________________________________________________________
+  void sendDPsoutputCavern(DataAllocator& output)
+  {
+    // extract CCDB infos and calibration object for DPs
+    if (mProcessor->updateCavernDPsCCDB()) {
+      const auto& payload = mProcessor->getTRDCavernDPsInfo();
+      auto& info = mProcessor->getccdbCavernDPsInfo();
+      auto image = o2::ccdb::CcdbApi::createObjectImage(&payload, &info);
+      LOG(info) << "Sending object " << info.getPath() << "/" << info.getFileName() << " of size " << image->size()
+                << " bytes, valid for " << info.getStartValidityTimestamp() << " : " << info.getEndValidityTimestamp();
+      output.snapshot(Output{o2::calibration::Utils::gDataOriginCDBPayload, "TRD_DCSCavernDPs", 0}, *image.get());
+      output.snapshot(Output{o2::calibration::Utils::gDataOriginCDBWrapper, "TRD_DCSCavernDPs", 0}, info);
+      mProcessor->clearCavernDPsInfo();
+    } else {
+      auto& info = mProcessor->getccdbCavernDPsInfo();
+      LOG(info) << "Not sending object " << info.getPath() << "/" << info.getFileName() << " since no DPs were processed for it";
+    }
+  }
+
 }; // end class
 } // namespace trd
 
@@ -349,9 +443,16 @@ DataProcessorSpec getTRDDCSDataProcessorSpec()
   outputs.emplace_back(ConcreteDataTypeMatcher{o2::calibration::Utils::gDataOriginCDBWrapper, "TRD_DCSRunDPs"});
   outputs.emplace_back(ConcreteDataTypeMatcher{o2::calibration::Utils::gDataOriginCDBPayload, "TRD_DCSEnvDPs"});
   outputs.emplace_back(ConcreteDataTypeMatcher{o2::calibration::Utils::gDataOriginCDBWrapper, "TRD_DCSEnvDPs"});
-  // LB: new DP for fedChamberStatus
+  // LB: new DPs for Fed and Cavern
+  // Must use reduced names due to initializer string cannot exceed descriptor size in Data Format
+  outputs.emplace_back(ConcreteDataTypeMatcher{o2::calibration::Utils::gDataOriginCDBPayload, "TRD_DCSFedDPs"});
   outputs.emplace_back(ConcreteDataTypeMatcher{o2::calibration::Utils::gDataOriginCDBPayload, "TRD_DCSFedDPs"});
   outputs.emplace_back(ConcreteDataTypeMatcher{o2::calibration::Utils::gDataOriginCDBWrapper, "TRD_DCSFedDPs"});
+  outputs.emplace_back(ConcreteDataTypeMatcher{o2::calibration::Utils::gDataOriginCDBWrapper, "TRD_DCSFedDPs"});
+  outputs.emplace_back(ConcreteDataTypeMatcher{o2::calibration::Utils::gDataOriginCDBPayload, "TRD_DCSFedDPs"});
+  outputs.emplace_back(ConcreteDataTypeMatcher{o2::calibration::Utils::gDataOriginCDBWrapper, "TRD_DCSFedDPs"});
+  outputs.emplace_back(ConcreteDataTypeMatcher{o2::calibration::Utils::gDataOriginCDBPayload, "TRD_DCSCavernDPs"});
+  outputs.emplace_back(ConcreteDataTypeMatcher{o2::calibration::Utils::gDataOriginCDBWrapper, "TRD_DCSCavernDPs"});
 
   return DataProcessorSpec{
     "trd-dcs-data-processor",

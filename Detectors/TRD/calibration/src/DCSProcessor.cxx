@@ -96,6 +96,8 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
   }
   auto flags = dpcom.data.get_flags();
   if (processFlags(flags, dpid.get_alias()) == 0) {
+
+    // DPs are sorted by type variable
     if (type == DPVAL_DOUBLE) {
       auto etime = dpcom.data.get_epoch_time();
 
@@ -163,7 +165,28 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
           mLastDPTimeStamps[dpid] = etime;
         }
       }
+
+      if (std::strstr(dpid.get_alias(), "trd_fedEnvTemp") != nullptr) { // DP is trd_fedEnvTemp
+        if (!mFedEnvTempStartTSSet) {
+          mFedEnvTempStartTS = mCurrentTS;
+          mFedEnvTempStartTSSet = true;
+        }
+      }
+
+      if (std::strstr(dpid.get_alias(), "trd_cavernHumidity") != nullptr) { // DP is trd_cavernHumidity
+        if (!mCavernStartTSSet) {
+          mCavernStartTS = mCurrentTS;
+          mCavernStartTSSet = true;
+        }
+        //auto& dpInfoCavern = mTRDDCSCavern[dpid];
+        //if (dpInfoCavern.nPoints == 0 || etime != mLastDPTimeStamps[dpid]) {
+          // only add data point in case last one was more than 2 hours ago
+          // dpInfoCavern.addPoint(o2::dcs::getValue<double>(dpcom), etime);
+          //mLastDPTimeStamps[dpid] = etime;
+        //}
+      }
     }
+
     if (type == DPVAL_INT) {
       if (std::strstr(dpid.get_alias(), "trd_runNo") != nullptr) { // DP is trd_runNo
         if (!mRunStartTSSet) {
@@ -178,6 +201,7 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
         } else {
           runNumber = o2::dcs::getValue<int32_t>(dpcom);
         }
+
       } else if (std::strstr(dpid.get_alias(), "trd_runType") != nullptr) { // DP is trd_runType
         if (!mRunStartTSSet) {
           mRunStartTS = mCurrentTS;
@@ -194,9 +218,9 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
       }
 
       if (std::strstr(dpid.get_alias(), "trd_fedChamberStatus") != nullptr) { // DP is trd_fedChamberStatus 
-        if (!mFedStartTSSet) {
-          mFedStartTS = mCurrentTS;
-          mFedStartTSSet = true;
+        if (!mFedChamberStatusStartTSSet) {
+          mFedChamberStatusStartTS = mCurrentTS;
+          mFedChamberStatusStartTSSet = true;
         }
         //auto& dpInfoFed = mTRDDCSFed[dpid];
         //if (dpInfoFed.nPoints == 0 || etime != mLastDPTimeStamps[dpid]) {
@@ -208,7 +232,11 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
     }
 
     if (type == DPVAL_STRING) {
-      if (std::strstr(dpid.get_alias(), "trd_fedCFGtag") != nullptr) { // DP is trd_fedCFGtag
+      if (std::strstr(dpid.get_alias(), "trd_fedCFGtag") != nullptr) { // DP is trd_fedCFGtag 
+        if (!mFedCFGtagStartTSSet) {
+          mFedCFGtagStartTS = mCurrentTS;
+          mFedCFGtagStartTSSet = true;
+        }
         auto cfgTag = o2::dcs::getValue<std::string>(dpcom);
         if (mVerbosity > 1) {
           LOG(info) << "CFG tag " << dpid.get_alias() << " is " << cfgTag;
@@ -362,7 +390,7 @@ bool DCSProcessor::updateVoltagesDPsCCDB()
           retVal = true;
         }
         if (mVerbosity > 1) {
-          LOG(info) << "PID = " << it.first.get_alias() << " Value = " << mTRDDCSVoltages[it.first];
+          LOG(info) << "PID = " << it.first.get_alias() << ". Value = " << mTRDDCSVoltages[it.first];
         }
       }
     }
@@ -429,30 +457,119 @@ bool DCSProcessor::updateRunDPsCCDB()
   return retVal;
 }
 
-bool DCSProcessor::updateFedDPsCCDB()
+bool DCSProcessor::updateFedChamberStatusDPsCCDB()
 {
-  // here we create the object containing the run data points to then be sent to CCDB
-  LOG(info) << "Preparing CCDB object for TRD fed DPs";
+  // here we create the object containing the fedChamberStatus data points to then be sent to CCDB
+  LOG(info) << "Preparing CCDB object for TRD fedChamberStatus DPs";
 
   bool retVal = false; // set to 'true' in case at least one DP for run has been processed
 
   for (const auto& it : mPids) {
     const auto& type = it.first.get_type();
     if (type == o2::dcs::DPVAL_INT) {
-      if (std::strstr(it.first.get_alias(), "trd_fed") != nullptr) {
+      if (std::strstr(it.first.get_alias(), "trd_fedChamberStatus") != nullptr) {
         if (it.second == true) { // we processed the DP at least 1x
           retVal = true;
         }
-        if (mVerbosity > 0) {
-          LOG(info) << "PID = " << it.first.get_alias() << ". Value = " << mTRDDCSFed[it.first];
+        if (mVerbosity > 1) {
+          LOG(info) << "PID = " << it.first.get_alias() << ". Value = " << mTRDDCSFedChamberStatus[it.first];
+        }
+      }
+    }
+  }
+
+  std::map<std::string, std::string> md;
+  md["responsible"] = "Leonardo Barreto";
+  // TODO: define mFedStartTS and mFedEndTS, use same setup as env for now
+  o2::calibration::Utils::prepareCCDBobjectInfo(mTRDDCSFedChamberStatus, mCcdbFedChamberStatusDPsInfo, "TRD/Calib/DCSDPsFedChamberStatus", md, mFedChamberStatusStartTS, mFedChamberStatusStartTS + 3 * o2::ccdb::CcdbObjectInfo::DAY);
+
+  return retVal;
+}
+
+bool DCSProcessor::updateFedCFGtagDPsCCDB()
+{
+  // here we create the object containing the fedCFGtag data points to then be sent to CCDB
+  LOG(info) << "Preparing CCDB object for TRD fedCFGtag DPs";
+
+  bool retVal = false; // set to 'true' in case at least one DP for run has been processed
+
+  for (const auto& it : mPids) {
+    const auto& type = it.first.get_type();
+    if (type == o2::dcs::DPVAL_STRING) {
+      if (std::strstr(it.first.get_alias(), "trd_fedCFGtag") != nullptr) {
+        if (it.second == true) { // we processed the DP at least 1x
+          retVal = true;
+        }
+        if (mVerbosity > 1) {
+          // TODO: print pid and values of tags
+        }
+      }
+    }
+  }
+
+  std::map<std::string, std::string> md;
+  md["responsible"] = "Leonardo Barreto";
+  // TODO: define mFedStartTS and mFedEndTS, use same setup as env for now
+  o2::calibration::Utils::prepareCCDBobjectInfo(mTRDDCSFedCFGtag, mCcdbFedCFGtagDPsInfo, 
+    "TRD/Calib/DCSDPsFedCFGtag", md, mFedCFGtagStartTS, mFedCFGtagStartTS + 3 * o2::ccdb::CcdbObjectInfo::DAY);
+
+  return retVal;
+}
+
+bool DCSProcessor::updateFedEnvTempDPsCCDB()
+{
+  // here we create the object containing the fedEnvTemp data points to then be sent to CCDB
+  LOG(info) << "Preparing CCDB object for TRD fedEnvTemp DPs";
+
+  bool retVal = false; // set to 'true' in case at least one DP for run has been processed
+
+  for (const auto& it : mPids) {
+    const auto& type = it.first.get_type();
+    if (type == o2::dcs::DPVAL_DOUBLE) {
+      if (std::strstr(it.first.get_alias(), "trd_fedEnvTemp") != nullptr) {
+        if (it.second == true) { // we processed the DP at least 1x
+          retVal = true;
+        }
+        if (mVerbosity > 1) {
+          LOG(info) << "PID = " << it.first.get_alias() << ". Value = " << mTRDDCSFedEnvTemp[it.first];
+        }
+      }
+    }
+  }
+
+  std::map<std::string, std::string> md;
+  md["responsible"] = "Leonardo Barreto";
+  // TODO: define mFedStartTS and mFedEndTS, use same setup as env for now
+  o2::calibration::Utils::prepareCCDBobjectInfo(mTRDDCSFedEnvTemp, mCcdbFedEnvTempDPsInfo, 
+    "TRD/Calib/DCSDPsFedEnvTemp", md, mFedEnvTempStartTS, mFedEnvTempStartTS + 3 * o2::ccdb::CcdbObjectInfo::DAY);
+
+  return retVal;
+}
+
+bool DCSProcessor::updateCavernDPsCCDB()
+{
+  // here we create the object containing the cavern data points to then be sent to CCDB
+  LOG(info) << "Preparing CCDB object for TRD cavern DPs";
+
+  bool retVal = false; // set to 'true' in case at least one DP for env has been processed
+
+  for (const auto& it : mPids) {
+    const auto& type = it.first.get_type();
+    if (type == o2::dcs::DPVAL_DOUBLE) {
+      if (std::strstr(it.first.get_alias(), "trd_cavern") != nullptr) {
+        if (it.second == true) { // we processed the DP at least 1x
+          retVal = true;
+        }
+        if (mVerbosity > 1) {
+          LOG(info) << "PID = " << it.first.get_alias() << ". Value = " << mTRDDCSCavern[it.first];
         }
       }
     }
   }
   std::map<std::string, std::string> md;
   md["responsible"] = "Leonardo Barreto";
-  // TODO: define mFedStartTS and mFedEndTS, use same setup as env for now
-  o2::calibration::Utils::prepareCCDBobjectInfo(mTRDDCSFed, mCcdbFedDPsInfo, "TRD/Calib/DCSDPsFed", md, mFedStartTS, mFedStartTS + 3 * o2::ccdb::CcdbObjectInfo::DAY);
+  // TODO: define mCavernStartTS and mCavernEndTS, use same setup as env for now
+  o2::calibration::Utils::prepareCCDBobjectInfo(mTRDDCSCavern, mCcdbCavernDPsInfo, "TRD/Calib/DCSDPsCavern", md, mCavernStartTS, mCavernStartTS + 3 * o2::ccdb::CcdbObjectInfo::DAY);
 
   return retVal;
 }
@@ -537,15 +654,60 @@ void DCSProcessor::clearRunDPsInfo()
   }
 }
 
-void DCSProcessor::clearFedDPsInfo()
+void DCSProcessor::clearFedChamberStatusDPsInfo()
 {
-  mTRDDCSFed.clear();
-  mFedStartTSSet = false;
+  mTRDDCSFedChamberStatus.clear();
+  mFedChamberStatusStartTSSet = false;
   // reset the 'processed' flags for the fed DPs
   for (auto& it : mPids) {
     const auto& type = it.first.get_type();
     if (type == o2::dcs::DPVAL_INT) {
-      if (std::strstr(it.first.get_alias(), "trd_fed") != nullptr) {
+      if (std::strstr(it.first.get_alias(), "trd_fedChamberStatus") != nullptr) {
+        it.second = false;
+      }
+    }
+  }
+}
+
+void DCSProcessor::clearFedCFGtagDPsInfo()
+{
+  mTRDDCSFedCFGtag.clear();
+  mFedCFGtagStartTSSet = false;
+  // reset the 'processed' flags for the fed DPs
+  for (auto& it : mPids) {
+    const auto& type = it.first.get_type();
+    if (type == o2::dcs::DPVAL_STRING) {
+      if (std::strstr(it.first.get_alias(), "trd_fedCFGtag") != nullptr) {
+        it.second = false;
+      }
+    }
+  }
+}
+
+void DCSProcessor::clearFedEnvTempDPsInfo()
+{
+  mTRDDCSFedEnvTemp.clear();
+  mFedEnvTempStartTSSet = false;
+  // reset the 'processed' flags for the fed DPs
+  for (auto& it : mPids) {
+    const auto& type = it.first.get_type();
+    if (type == o2::dcs::DPVAL_DOUBLE) {
+      if (std::strstr(it.first.get_alias(), "trd_fedEnvTemp") != nullptr) {
+        it.second = false;
+      }
+    }
+  }
+}
+
+void DCSProcessor::clearCavernDPsInfo()
+{
+  mTRDDCSCavern.clear();
+  mCavernStartTSSet = false;
+  // reset the 'processed' flags for the fed DPs
+  for (auto& it : mPids) {
+    const auto& type = it.first.get_type();
+    if (type == o2::dcs::DPVAL_DOUBLE) {
+      if (std::strstr(it.first.get_alias(), "trd_cavern") != nullptr) {
         it.second = false;
       }
     }
