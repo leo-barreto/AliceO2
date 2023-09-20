@@ -73,6 +73,12 @@ class TRDDCSDataProcessor : public o2::framework::Task
       LOG(error) << "TRD DPs update interval set to zero seconds --> changed to 1800s";
       mEnvDPsUpdateInterval = 1800;
     }
+    // LB: FedEnvTemp DPs, only update every 30 minutes
+    mFedEnvTempDPsUpdateInterval = ic.options().get<int64_t>("DPs-update-interval-fedenv");
+    if (mFedEnvTempDPsUpdateInterval == 0) {
+      LOG(error) << "TRD DPs update interval set to zero seconds --> changed to 1800s";
+      mFedEnvTempDPsUpdateInterval = 1800;
+    }
     // LB: Cavern DPs, only update every 2 hours
     mCavernDPsUpdateInterval = ic.options().get<int64_t>("DPs-update-interval-cavern");
     if (mCavernDPsUpdateInterval == 0) {
@@ -474,6 +480,7 @@ DataProcessorSpec getTRDDCSDataProcessorSpec()
             {"DPs-update-interval-env", VariantType::Int64, 1800ll, {"Interval (in s) after which to update the DPs CCDB entry for environment parameters"}},
             {"DPs-min-update-interval-voltages", VariantType::Int64, 120ll, {"Minimum range to be covered by voltage CCDB object"}},
             {"DPs-update-interval-gas", VariantType::Int64, 900ll, {"Interval (in s) after which to update the DPs CCDB entry for gas parameters"}},
+            {"DPs-update-interval-fedenv", VariantType::Int64, 1800ll, {"Interval (in s) after which to update the DPs CCDB entry for front end device environment parameters"}},
             {"DPs-update-interval-cavern", VariantType::Int64, 7200ll, {"Interval (in s) after which to update the DPs CCDB entry for cavern parameters"}}}};
 
 }

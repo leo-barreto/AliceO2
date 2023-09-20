@@ -171,6 +171,12 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
           mFedEnvTempStartTS = mCurrentTS;
           mFedEnvTempStartTSSet = true;
         }
+        auto& dpInfoFedEnvTemp = mTRDDCSFedEnvTemp[dpid];
+        if (etime != mLastDPTimeStamps[dpid]) {
+          // only add data point in case last one was not already read before (every 0.5 hours)
+          dpInfoFedEnvTemp = o2::dcs::getValue<double>(dpcom);
+          mLastDPTimeStamps[dpid] = etime;
+        }
       }
 
       if (std::strstr(dpid.get_alias(), "trd_cavernHumidity") != nullptr) { // DP is trd_cavernHumidity
