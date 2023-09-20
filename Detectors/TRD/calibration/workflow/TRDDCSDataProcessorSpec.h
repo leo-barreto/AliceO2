@@ -116,7 +116,7 @@ class TRDDCSDataProcessor : public o2::framework::Task
     }
 
     mProcessor = std::make_unique<o2::trd::DCSProcessor>();
-    int verbosity = ic.options().get<bool>("processor-verbosity");
+    int verbosity = ic.options().get<int>("processor-verbosity");
     if (verbosity > 0) {
       LOG(info) << "Using verbose mode for TRD DCS processor";
       mProcessor->setVerbosity(verbosity);
