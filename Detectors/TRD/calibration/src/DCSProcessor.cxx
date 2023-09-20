@@ -96,10 +96,11 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
   }
   auto flags = dpcom.data.get_flags();
   if (processFlags(flags, dpid.get_alias()) == 0) {
+      auto etime = dpcom.data.get_epoch_time();
 
     // DPs are sorted by type variable
     if (type == DPVAL_DOUBLE) {
-      auto etime = dpcom.data.get_epoch_time();
+      //auto etime = dpcom.data.get_epoch_time();
 
       // check if DP is one of the gas values
       if (std::strstr(dpid.get_alias(), "trd_gas") != nullptr) {
@@ -228,12 +229,16 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
           mFedChamberStatusStartTS = mCurrentTS;
           mFedChamberStatusStartTSSet = true;
         }
-        //auto& dpInfoFed = mTRDDCSFed[dpid];
-        //if (dpInfoFed.nPoints == 0 || etime != mLastDPTimeStamps[dpid]) {
-        //  // only add data point in case it was not already read before
-        //  dpInfoFed.addPoint(o2::dcs::getValue<int>(dpcom), etime);
-        //  mLastDPTimeStamps[dpid] = etime;
-        //}
+        auto& dpInfoFedChamberStatus = mTRDDCSFedChamberStatus[dpid];
+        if (etime != mLastDPTimeStamps[dpid]) {
+          if (dpInfoFedChamberStatus != o2::dcs::getValue<int>(dpcom)) {
+            // only add data point in case it was not already read before and
+            // value changed
+            mShouldUpdateFedChamberStatus = true;
+          }
+          dpInfoFedChamberStatus = o2::dcs::getValue<int>(dpcom);
+          mLastDPTimeStamps[dpid] = etime;
+        }
       }  
     }
 
@@ -243,10 +248,20 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
           mFedCFGtagStartTS = mCurrentTS;
           mFedCFGtagStartTSSet = true;
         }
-        auto cfgTag = o2::dcs::getValue<std::string>(dpcom);
-        if (mVerbosity > 1) {
-          LOG(info) << "CFG tag " << dpid.get_alias() << " is " << cfgTag;
+        auto& dpInfoFedCFGtag = mTRDDCSFedCFGtag[dpid];
+        if (etime != mLastDPTimeStamps[dpid]) {
+          if (dpInfoFedCFGtag != o2::dcs::getValue<string>(dpcom)) {
+            // only add data point in case it was not already read before and
+            // value changed
+            mShouldUpdateFedCFGtag = true;
+          }
+          dpInfoFedCFGtag = o2::dcs::getValue<std::string>(dpcom);
+          mLastDPTimeStamps[dpid] = etime;
         }
+        //auto cfgTag = o2::dcs::getValue<std::string>(dpcom);
+        //if (mVerbosity > 1) {
+          //LOG(info) << "CFG tag " << dpid.get_alias() << " is " << cfgTag;
+        //}
       }
     }
   }
@@ -507,7 +522,7 @@ bool DCSProcessor::updateFedCFGtagDPsCCDB()
           retVal = true;
         }
         if (mVerbosity > 1) {
-          // TODO: print pid and values of tags
+          LOG(info) << "PID = " << it.first.get_alias() << ". Value = " << mTRDDCSFedCFGtag[it.first];
         }
       }
     }
@@ -617,7 +632,6 @@ void DCSProcessor::clearGasDPsInfo()
   // reset the data and the gas CCDB object itself
   mTRDDCSGas.clear();
   mGasStartTSset = false; // the next object will be valid from the first processed time stamp
-
   // reset the 'processed' flags for the gas DPs
   for (auto& it : mPids) {
     const auto& type = it.first.get_type();
@@ -664,6 +678,7 @@ void DCSProcessor::clearFedChamberStatusDPsInfo()
 {
   mTRDDCSFedChamberStatus.clear();
   mFedChamberStatusStartTSSet = false;
+  mShouldUpdateFedChamberStatus = false;
   // reset the 'processed' flags for the fed DPs
   for (auto& it : mPids) {
     const auto& type = it.first.get_type();
@@ -679,6 +694,7 @@ void DCSProcessor::clearFedCFGtagDPsInfo()
 {
   mTRDDCSFedCFGtag.clear();
   mFedCFGtagStartTSSet = false;
+  mShouldUpdateFedCFGtag = false;
   // reset the 'processed' flags for the fed DPs
   for (auto& it : mPids) {
     const auto& type = it.first.get_type();

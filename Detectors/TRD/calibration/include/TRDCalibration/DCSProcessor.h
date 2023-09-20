@@ -71,9 +71,9 @@ class DCSProcessor
   bool updateCavernDPsCCDB();
 
   // signal that the CCDB object for the voltages should be updated due to change exceeding threshold
-  // LB: not used for now
   bool shouldUpdateVoltages() const { return mShouldUpdateVoltages; }
   bool shouldUpdateRun() const { return mShouldUpdateRun; }
+  bool shouldUpdateFedChamber() const { return (mShouldUpdateRun || mShouldUpdateFedChamberStatus || mShouldUpdateFedCFGtag); }
 
   // allow access to the CCDB objects from DPL processor
   CcdbObjectInfo& getccdbGasDPsInfo() { return mCcdbGasDPsInfo; }
@@ -178,6 +178,9 @@ class DCSProcessor
   std::bitset<constants::MAXCHAMBER> mVoltageSet{};
   bool mShouldUpdateVoltages{false};
   bool mShouldUpdateRun{false};
+  // LB: FedChamberStatus and FedCFGtag logic
+  bool mShouldUpdateFedChamberStatus{false};
+  bool mShouldUpdateFedCFGtag{false};
 
   // settings
   int mVerbosity{0};

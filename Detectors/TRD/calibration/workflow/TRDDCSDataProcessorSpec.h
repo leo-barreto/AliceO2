@@ -187,17 +187,23 @@ class TRDDCSDataProcessor : public o2::framework::Task
     }
 
     // LB: new DP for FedChamberStatus
-    auto elapsedTimeFedChamberStatus = timeNow - mTimerFedChamberStatus; // in ns
-    if (elapsedTimeFedChamberStatus.count() * 1e-9 >= mFedChamberStatusDPsUpdateInterval) {
-      sendDPsoutputFedChamberStatus(pc.outputs());
-      mTimerFedChamberStatus = timeNow;
-    }
+    //auto elapsedTimeFedChamberStatus = timeNow - mTimerFedChamberStatus; // in ns
+    //if (elapsedTimeFedChamberStatus.count() * 1e-9 >= mFedChamberStatusDPsUpdateInterval) {
+    //  sendDPsoutputFedChamberStatus(pc.outputs());
+    //  mTimerFedChamberStatus = timeNow;
+    //}
+    //
+    //// LB: new DP for FedCFGtag
+    //auto elapsedTimeFedCFGtag = timeNow - mTimerFedCFGtag; // in ns
+    //if (elapsedTimeFedCFGtag.count() * 1e-9 >= mFedCFGtagDPsUpdateInterval) {
+    //  sendDPsoutputFedCFGtag(pc.outputs());
+    //  mTimerFedCFGtag = timeNow;
+    //}
     
-    // LB: new DP for FedCFGtag
-    auto elapsedTimeFedCFGtag = timeNow - mTimerFedCFGtag; // in ns
-    if (elapsedTimeFedCFGtag.count() * 1e-9 >= mFedCFGtagDPsUpdateInterval) {
+    // LB: processing logic for FedChamberStatus and FedCFGtag
+    if (mProcessor->shouldUpdateFedChamber()) {
+      sendDPsoutputFedChamberStatus(pc.outputs());
       sendDPsoutputFedCFGtag(pc.outputs());
-      mTimerFedCFGtag = timeNow;
     }
     
     // LB: new DP for FedEnvTemp
