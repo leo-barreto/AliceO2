@@ -73,6 +73,12 @@ class TRDDCSDataProcessor : public o2::framework::Task
       LOG(error) << "TRD DPs update interval set to zero seconds --> changed to 1800s";
       mEnvDPsUpdateInterval = 1800;
     }
+    // LB: Cavern DPs, only update every 2 hours
+    mCavernDPsUpdateInterval = ic.options().get<int64_t>("DPs-update-interval-cavern");
+    if (mCavernDPsUpdateInterval == 0) {
+      LOG(error) << "TRD DPs update interval set to zero seconds --> changed to 7200s";
+      mCavernDPsUpdateInterval = 7200;
+    }
     bool useCCDBtoConfigure = ic.options().get<bool>("use-ccdb-to-configure");
     if (useCCDBtoConfigure) {
       LOG(info) << "Configuring via CCDB";
@@ -467,7 +473,9 @@ DataProcessorSpec getTRDDCSDataProcessorSpec()
             {"DPs-update-interval-voltages", VariantType::Int64, 600ll, {"Interval (in s) after which to update the DPs CCDB entry for voltage parameters"}},
             {"DPs-update-interval-env", VariantType::Int64, 1800ll, {"Interval (in s) after which to update the DPs CCDB entry for environment parameters"}},
             {"DPs-min-update-interval-voltages", VariantType::Int64, 120ll, {"Minimum range to be covered by voltage CCDB object"}},
-            {"DPs-update-interval-gas", VariantType::Int64, 900ll, {"Interval (in s) after which to update the DPs CCDB entry for gas parameters"}}}};
+            {"DPs-update-interval-gas", VariantType::Int64, 900ll, {"Interval (in s) after which to update the DPs CCDB entry for gas parameters"}},
+            {"DPs-update-interval-cavern", VariantType::Int64, 7200ll, {"Interval (in s) after which to update the DPs CCDB entry for cavern parameters"}}}};
+
 }
 
 } // namespace framework

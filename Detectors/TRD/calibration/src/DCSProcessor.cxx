@@ -178,12 +178,12 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
           mCavernStartTS = mCurrentTS;
           mCavernStartTSSet = true;
         }
-        //auto& dpInfoCavern = mTRDDCSCavern[dpid];
-        //if (dpInfoCavern.nPoints == 0 || etime != mLastDPTimeStamps[dpid]) {
-          // only add data point in case last one was more than 2 hours ago
-          // dpInfoCavern.addPoint(o2::dcs::getValue<double>(dpcom), etime);
-          //mLastDPTimeStamps[dpid] = etime;
-        //}
+        auto& dpInfoCavern = mTRDDCSCavern[dpid];
+        if (etime != mLastDPTimeStamps[dpid]) {
+          // only add data point in case last one was not already read before (every 2 hours)
+          dpInfoCavern = o2::dcs::getValue<double>(dpcom);
+          mLastDPTimeStamps[dpid] = etime;
+        }
       }
     }
 
@@ -416,7 +416,7 @@ bool DCSProcessor::updateEnvDPsCCDB()
         if (it.second == true) { // we processed the DP at least 1x
           retVal = true;
         }
-        if (mVerbosity > 0) {
+        if (mVerbosity > 1) {
           LOG(info) << "PID = " << it.first.get_alias();
           mTRDDCSEnv[it.first].print();
         }
