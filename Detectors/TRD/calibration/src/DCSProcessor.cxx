@@ -209,6 +209,12 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
           runNumber = o2::dcs::getValue<int32_t>(dpcom);
         }
 
+        // Always save current run number
+        mCurrentRun = runNumber;
+        if (mVerbosity > 2) {
+          LOG(info) << "Current Run Number: " << mCurrentRun;
+        }
+
       } else if (std::strstr(dpid.get_alias(), "trd_runType") != nullptr) { // DP is trd_runType
         if (!mRunStartTSSet) {
           mRunStartTS = mCurrentTS;
@@ -221,6 +227,10 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
           mRunEndTS = mCurrentTS;
         } else {
           runType = o2::dcs::getValue<int32_t>(dpcom);
+        }
+        
+        if (mVerbosity > 2) {
+          LOG(info) << "Current Run Type: " << runType;
         }
       }
 
@@ -501,6 +511,7 @@ bool DCSProcessor::updateFedChamberStatusDPsCCDB()
 
   std::map<std::string, std::string> md;
   md["responsible"] = "Leonardo Barreto";
+  md["runNumber"] = std::to_string(mCurrentRun);
   // TODO: define mFedStartTS and mFedEndTS, use same setup as env for now
   o2::calibration::Utils::prepareCCDBobjectInfo(mTRDDCSFedChamberStatus, mCcdbFedChamberStatusDPsInfo, "TRD/Calib/DCSDPsFedChamberStatus", md, mFedChamberStatusStartTS, mFedChamberStatusStartTS + 3 * o2::ccdb::CcdbObjectInfo::DAY);
 
@@ -530,6 +541,7 @@ bool DCSProcessor::updateFedCFGtagDPsCCDB()
 
   std::map<std::string, std::string> md;
   md["responsible"] = "Leonardo Barreto";
+  md["runNumber"] = std::to_string(mCurrentRun);
   // TODO: define mFedStartTS and mFedEndTS, use same setup as env for now
   o2::calibration::Utils::prepareCCDBobjectInfo(mTRDDCSFedCFGtag, mCcdbFedCFGtagDPsInfo, 
     "TRD/Calib/DCSDPsFedCFGtag", md, mFedCFGtagStartTS, mFedCFGtagStartTS + 3 * o2::ccdb::CcdbObjectInfo::DAY);

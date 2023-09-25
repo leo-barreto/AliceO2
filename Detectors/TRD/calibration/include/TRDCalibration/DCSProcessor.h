@@ -181,6 +181,7 @@ class DCSProcessor
   // LB: FedChamberStatus and FedCFGtag logic
   bool mShouldUpdateFedChamberStatus{false};
   bool mShouldUpdateFedCFGtag{false};
+  int mCurrentRun;
 
   // settings
   int mVerbosity{0};
