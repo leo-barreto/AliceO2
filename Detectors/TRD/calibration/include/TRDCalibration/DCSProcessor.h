@@ -183,6 +183,9 @@ class DCSProcessor
   bool mShouldUpdateFedChamberStatus{false};
   bool mShouldUpdateFedCFGtag{false};
   int mCurrentRunNumber;
+  int mFedChamberStatusAlarmCounter{0};
+  int mFedCFGtagAlarmCounter{0};
+  int mFedAlarmCounterMax{1};
   // LB: for testing runNo object, turned off for now
   //int mFinishedRunNumber;
 
