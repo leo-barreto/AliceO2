@@ -100,7 +100,6 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
 
     // DPs are sorted by type variable
     if (type == DPVAL_DOUBLE) {
-      //auto etime = dpcom.data.get_epoch_time();
 
       // check if DP is one of the gas values
       if (std::strstr(dpid.get_alias(), "trd_gas") != nullptr) {
@@ -200,20 +199,33 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
           mRunStartTS = mCurrentTS;
           mRunStartTSSet = true;
         }
+
+
+
         auto& runNumber = mTRDDCSRun[dpid];
+      
+        // LB: Once new run begins, update ChamberStatus and CFGtag, no need to be a processed one already
+        if (runNumber != o2::dcs::getValue<int32_t>(dpcom)) {
+          mShouldUpdateFedChamberStatus = true;
+          mShouldUpdateFedCFGtag = true;
+        }
+
+        // Check if run already processed has changed. If true, update "old" run (i.e. when new run starts)
         if (mPids[dpid] && runNumber != o2::dcs::getValue<int32_t>(dpcom)) {
-          LOGF(info, "Run number has already been processed and the new one %i differs from the old one %i", runNumber, o2::dcs::getValue<int32_t>(dpcom));
+          LOG(info) << "Run number has already been processed and the new one " << o2::dcs::getValue<int32_t>(dpcom) << " differs from the old one " << runNumber;
           mShouldUpdateRun = true;
           mRunEndTS = mCurrentTS;
+          //mFinishedRunNumber = runNumber;   
         } else {
           runNumber = o2::dcs::getValue<int32_t>(dpcom);
         }
 
         // Always save current run number
-        mCurrentRun = runNumber;
+        mCurrentRunNumber = o2::dcs::getValue<int32_t>(dpcom);
         if (mVerbosity > 2) {
-          LOG(info) << "Current Run Number: " << mCurrentRun;
+          LOG(info) << "Current Run Number: " << mCurrentRunNumber;
         }
+
 
       } else if (std::strstr(dpid.get_alias(), "trd_runType") != nullptr) { // DP is trd_runType
         if (!mRunStartTSSet) {
@@ -222,7 +234,7 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
         }
         auto& runType = mTRDDCSRun[dpid];
         if (mPids[dpid] && runType != o2::dcs::getValue<int32_t>(dpcom)) {
-          LOGF(info, "Run type has already been processed and the new one %i differs from the old one %i", runType, o2::dcs::getValue<int32_t>(dpcom));
+          LOG(info) << "Run type has already been processed and the new one " << o2::dcs::getValue<int32_t>(dpcom) << " differs from the old one " << runType;
           mShouldUpdateRun = true;
           mRunEndTS = mCurrentTS;
         } else {
@@ -230,7 +242,7 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
         }
         
         if (mVerbosity > 2) {
-          LOG(info) << "Current Run Type: " << runType;
+          LOG(info) << "Current Run Type: " << o2::dcs::getValue<int32_t>(dpcom);
         }
       }
 
@@ -242,9 +254,11 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
         auto& dpInfoFedChamberStatus = mTRDDCSFedChamberStatus[dpid];
         if (etime != mLastDPTimeStamps[dpid]) {
           if (dpInfoFedChamberStatus != o2::dcs::getValue<int>(dpcom)) {
-            // only add data point in case it was not already read before and
-            // value changed
-            mShouldUpdateFedChamberStatus = true;
+            // If value changes after processing, log change as warning (for now)
+            if (mPids[dpid] && !mShouldUpdateFedChamberStatus) {
+	      LOG(warn) << "ChamberStatus change " << dpid.get_alias() << " : " << dpInfoFedChamberStatus <<
+		           " -> " << o2::dcs::getValue<int>(dpcom) << ", run = " << mCurrentRunNumber;  
+            }
           }
           dpInfoFedChamberStatus = o2::dcs::getValue<int>(dpcom);
           mLastDPTimeStamps[dpid] = etime;
@@ -261,9 +275,11 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
         auto& dpInfoFedCFGtag = mTRDDCSFedCFGtag[dpid];
         if (etime != mLastDPTimeStamps[dpid]) {
           if (dpInfoFedCFGtag != o2::dcs::getValue<string>(dpcom)) {
-            // only add data point in case it was not already read before and
-            // value changed
-            mShouldUpdateFedCFGtag = true;
+            // If value changes after processing, log change as warning (for now)
+            if (mPids[dpid] && !mShouldUpdateFedCFGtag) {
+	      LOG(warn) << "CFGtag change " << dpid.get_alias() << " : " << dpInfoFedCFGtag <<
+		           " -> " << o2::dcs::getValue<string>(dpcom) << ", run = " << mCurrentRunNumber;  
+            }
           }
           dpInfoFedCFGtag = o2::dcs::getValue<std::string>(dpcom);
           mLastDPTimeStamps[dpid] = etime;
@@ -483,6 +499,8 @@ bool DCSProcessor::updateRunDPsCCDB()
   }
   std::map<std::string, std::string> md;
   md["responsible"] = "Leonardo Barreto";
+  // Redundancy for testing, this object is updated after run ended, so need to write old run number, not current
+  //md["runNumber"] = std::to_string(mFinishedRunNumber);
   o2::calibration::Utils::prepareCCDBobjectInfo(mTRDDCSRun, mCcdbRunDPsInfo, "TRD/Calib/DCSDPsRun", md, mRunStartTS, mRunEndTS);
 
   return retVal;
@@ -511,9 +529,12 @@ bool DCSProcessor::updateFedChamberStatusDPsCCDB()
 
   std::map<std::string, std::string> md;
   md["responsible"] = "Leonardo Barreto";
-  md["runNumber"] = std::to_string(mCurrentRun);
+  md["runNumber"] = std::to_string(mCurrentRunNumber);
   // TODO: define mFedStartTS and mFedEndTS, use same setup as env for now
   o2::calibration::Utils::prepareCCDBobjectInfo(mTRDDCSFedChamberStatus, mCcdbFedChamberStatusDPsInfo, "TRD/Calib/DCSDPsFedChamberStatus", md, mFedChamberStatusStartTS, mFedChamberStatusStartTS + 3 * o2::ccdb::CcdbObjectInfo::DAY);
+
+  // Once updated, do not update again until new run
+  mShouldUpdateFedChamberStatus = false;  
 
   return retVal;
 }
@@ -541,11 +562,14 @@ bool DCSProcessor::updateFedCFGtagDPsCCDB()
 
   std::map<std::string, std::string> md;
   md["responsible"] = "Leonardo Barreto";
-  md["runNumber"] = std::to_string(mCurrentRun);
+  md["runNumber"] = std::to_string(mCurrentRunNumber);
   // TODO: define mFedStartTS and mFedEndTS, use same setup as env for now
   o2::calibration::Utils::prepareCCDBobjectInfo(mTRDDCSFedCFGtag, mCcdbFedCFGtagDPsInfo, 
     "TRD/Calib/DCSDPsFedCFGtag", md, mFedCFGtagStartTS, mFedCFGtagStartTS + 3 * o2::ccdb::CcdbObjectInfo::DAY);
 
+  // Once updated, do not update again until new run
+  mShouldUpdateFedCFGtag = false; 
+ 
   return retVal;
 }
 
