@@ -61,24 +61,23 @@ void readTRDDCSentries(std::string ccdb = "http://localhost:8080", long ts = -1)
   }
   std::cout << std::endl;
 
-  // Access Run DPs, i.e. same thing but for DCSDPsEnv
-  auto calenv = ccdbmgr.get<unordered_map<o2::dcs::DataPointIdentifier, o2::trd::TRDDCSMinMaxMeanInfo>>("TRD/Calib/DCSDPsEnv");
+  // LB: also read FeChamberStatus and FedCFGtag for testing
+  // There seems to be an issue with the validity timestamp of Run DPs, ignoring them at the moment
+  // Access FedChamberStatus DPs
+  auto calchamberstatus = ccdbmgr.get<unordered_map<o2::dcs::DataPointIdentifier, int>>("TRD/Calib/DCSDPsFedChamberStatus");
 
-  std::cout << "Print all objects from the map (DCSPDsEnv), together with their DataPointIdentifier:" << std::endl;
-  for (const auto& entry : *calenv) {
-    std::cout << "id =  " << entry.first << std::endl;
-    entry.second.print();
-    //std::cout << "value =  " << entry.second << std::endl;
+  std::cout << "Print all objects from the map (DCSDPsFedChamberStatus), together with their DataPointIdentifier:" << std::endl;
+  for (const auto& entry : *calchamberstatus) {
+    std::cout << "id =  " << entry.first << ",\tvalue =  " << entry.second << std::endl;
   }
   std::cout << std::endl;
   
-  // Access Run DPs, i.e. same thing but for DCSDPsRun
-  auto calrun = ccdbmgr.get<unordered_map<o2::dcs::DataPointIdentifier, int>>("TRD/Calib/DCSDPsRun");
+  // Access FedCFGtag DPs
+  auto calcfgtag = ccdbmgr.get<unordered_map<o2::dcs::DataPointIdentifier, string>>("TRD/Calib/DCSDPsFedCFGtag");
 
-  std::cout << "Print all objects from the map (DCSPDsRun), together with their DataPointIdentifier:" << std::endl;
-  for (const auto& entry : *calrun) {
-    std::cout << "id =  " << entry.first << std::endl;
-    std::cout << "value =  " << entry.second << std::endl;
+  std::cout << "Print all objects from the map (DCSDPsFedCFGtag), together with their DataPointIdentifier:" << std::endl;
+  for (const auto& entry : *calcfgtag) {
+    std::cout << "id =  " << entry.first << ",\tvalue =  " << entry.second << std::endl;
   }
   std::cout << std::endl;
 
