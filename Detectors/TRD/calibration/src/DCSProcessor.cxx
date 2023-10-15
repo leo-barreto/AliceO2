@@ -96,7 +96,7 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
   }
   auto flags = dpcom.data.get_flags();
   if (processFlags(flags, dpid.get_alias()) == 0) {
-      auto etime = dpcom.data.get_epoch_time();
+    auto etime = dpcom.data.get_epoch_time();
 
     // DPs are sorted by type variable
     if (type == DPVAL_DOUBLE) {
@@ -201,7 +201,7 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
         }
 
         auto& runNumber = mTRDDCSRun[dpid];
-      
+
         // LB: Once new run begins, update ChamberStatus and CFGtag, no need to be a processed one already
         if (runNumber != o2::dcs::getValue<int32_t>(dpcom)) {
           mShouldUpdateFedChamberStatus = true;
@@ -213,7 +213,7 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
           LOG(info) << "Run number has already been processed and the new one " << o2::dcs::getValue<int32_t>(dpcom) << " differs from the old one " << runNumber;
           mShouldUpdateRun = true;
           mRunEndTS = mCurrentTS;
-          //mFinishedRunNumber = runNumber;   
+          //mFinishedRunNumber = runNumber;
         } else {
           runNumber = o2::dcs::getValue<int32_t>(dpcom);
         }
@@ -223,7 +223,6 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
         if (mVerbosity > 2) {
           LOG(info) << "Current Run Number: " << mCurrentRunNumber;
         }
-
 
       } else if (std::strstr(dpid.get_alias(), "trd_runType") != nullptr) { // DP is trd_runType
         if (!mRunStartTSSet) {
@@ -238,13 +237,13 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
         } else {
           runType = o2::dcs::getValue<int32_t>(dpcom);
         }
-        
+
         if (mVerbosity > 2) {
           LOG(info) << "Current Run Type: " << o2::dcs::getValue<int32_t>(dpcom);
         }
       }
 
-      if (std::strstr(dpid.get_alias(), "trd_fedChamberStatus") != nullptr) { // DP is trd_fedChamberStatus 
+      if (std::strstr(dpid.get_alias(), "trd_fedChamberStatus") != nullptr) { // DP is trd_fedChamberStatus
         if (!mFedChamberStatusStartTSSet) {
           mFedChamberStatusStartTS = mCurrentTS;
           mFedChamberStatusStartTSSet = true;
@@ -268,11 +267,11 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
           dpInfoFedChamberStatus = o2::dcs::getValue<int>(dpcom);
           mLastDPTimeStamps[dpid] = etime;
         }
-      }  
+      }
     }
 
     if (type == DPVAL_STRING) {
-      if (std::strstr(dpid.get_alias(), "trd_fedCFGtag") != nullptr) { // DP is trd_fedCFGtag 
+      if (std::strstr(dpid.get_alias(), "trd_fedCFGtag") != nullptr) { // DP is trd_fedCFGtag
         if (!mFedCFGtagStartTSSet) {
           mFedCFGtagStartTS = mCurrentTS;
           mFedCFGtagStartTSSet = true;
@@ -298,7 +297,7 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
         }
         //auto cfgTag = o2::dcs::getValue<std::string>(dpcom);
         //if (mVerbosity > 1) {
-          //LOG(info) << "CFG tag " << dpid.get_alias() << " is " << cfgTag;
+        //LOG(info) << "CFG tag " << dpid.get_alias() << " is " << cfgTag;
         //}
       }
     }
@@ -606,8 +605,8 @@ bool DCSProcessor::updateFedEnvTempDPsCCDB()
   std::map<std::string, std::string> md;
   md["responsible"] = "Leonardo Barreto";
   // TODO: define mFedStartTS and mFedEndTS, use same setup as env for now
-  o2::calibration::Utils::prepareCCDBobjectInfo(mTRDDCSFedEnvTemp, mCcdbFedEnvTempDPsInfo, 
-    "TRD/Calib/DCSDPsFedEnvTemp", md, mFedEnvTempStartTS, mFedEnvTempStartTS + 3 * o2::ccdb::CcdbObjectInfo::DAY);
+  o2::calibration::Utils::prepareCCDBobjectInfo(mTRDDCSFedEnvTemp, mCcdbFedEnvTempDPsInfo,
+                                                "TRD/Calib/DCSDPsFedEnvTemp", md, mFedEnvTempStartTS, mFedEnvTempStartTS + 3 * o2::ccdb::CcdbObjectInfo::DAY);
 
   return retVal;
 }
