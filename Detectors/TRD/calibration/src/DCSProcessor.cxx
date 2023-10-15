@@ -213,7 +213,7 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
           LOG(info) << "Run number has already been processed and the new one " << o2::dcs::getValue<int32_t>(dpcom) << " differs from the old one " << runNumber;
           mShouldUpdateRun = true;
           mRunEndTS = mCurrentTS;
-          //mFinishedRunNumber = runNumber;
+          // mFinishedRunNumber = runNumber;
         } else {
           runNumber = o2::dcs::getValue<int32_t>(dpcom);
         }
@@ -295,10 +295,6 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
           dpInfoFedCFGtag = o2::dcs::getValue<std::string>(dpcom);
           mLastDPTimeStamps[dpid] = etime;
         }
-        //auto cfgTag = o2::dcs::getValue<std::string>(dpcom);
-        //if (mVerbosity > 1) {
-        //LOG(info) << "CFG tag " << dpid.get_alias() << " is " << cfgTag;
-        //}
       }
     }
   }
@@ -511,7 +507,7 @@ bool DCSProcessor::updateRunDPsCCDB()
   std::map<std::string, std::string> md;
   md["responsible"] = "Leonardo Barreto";
   // Redundancy for testing, this object is updated after run ended, so need to write old run number, not current
-  //md["runNumber"] = std::to_string(mFinishedRunNumber);
+  // md["runNumber"] = std::to_string(mFinishedRunNumber);
   o2::calibration::Utils::prepareCCDBobjectInfo(mTRDDCSRun, mCcdbRunDPsInfo, "TRD/Calib/DCSDPsRun", md, mRunStartTS, mRunEndTS);
 
   return retVal;
