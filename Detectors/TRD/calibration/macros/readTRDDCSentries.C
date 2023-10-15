@@ -71,7 +71,7 @@ void readTRDDCSentries(std::string ccdb = "http://localhost:8080", long ts = -1)
     std::cout << "id =  " << entry.first << ",\tvalue =  " << entry.second << std::endl;
   }
   std::cout << std::endl;
-  
+
   // Access FedCFGtag DPs
   auto calcfgtag = ccdbmgr.get<unordered_map<o2::dcs::DataPointIdentifier, string>>("TRD/Calib/DCSDPsFedCFGtag");
 

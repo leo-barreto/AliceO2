@@ -257,13 +257,11 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
             if (mPids[dpid] && !mShouldUpdateFedChamberStatus) {
               // Issue an alarm if counter is lower than maximum, warning otherwise
               if (mFedChamberStatusAlarmCounter < mFedAlarmCounterMax) {
-	        LOG(alarm) << "First ChamberStatus change " << dpid.get_alias() << " : " << dpInfoFedChamberStatus <<                 " -> " << o2::dcs::getValue<int>(dpcom) << ", run = " << mCurrentRunNumber << 
-                ", a warning will be issued for the next ones";
+                LOG(alarm) << "First ChamberStatus change " << dpid.get_alias() << " : " << dpInfoFedChamberStatus << " -> " << o2::dcs::getValue<int>(dpcom) << ", run = " << mCurrentRunNumber << ", a warning will be issued for the next ones";
                 mFedChamberStatusAlarmCounter++;
-              } else if (mVerbosity > 0) {  
-	        LOG(warn) << "ChamberStatus change " << dpid.get_alias() << " : " << dpInfoFedChamberStatus <<
-		" -> " << o2::dcs::getValue<int>(dpcom) << ", run = " << mCurrentRunNumber;
-              }  
+              } else if (mVerbosity > 0) {
+                LOG(warn) << "ChamberStatus change " << dpid.get_alias() << " : " << dpInfoFedChamberStatus << " -> " << o2::dcs::getValue<int>(dpcom) << ", run = " << mCurrentRunNumber;
+              }
             }
           }
 
@@ -287,12 +285,10 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
             if (mPids[dpid] && !mShouldUpdateFedChamberStatus) {
               // Issue an alarm if counter is lower than maximum, warning otherwise
               if (mFedCFGtagAlarmCounter < mFedAlarmCounterMax) {
-	        LOG(alarm) << "First CFGtag change " << dpid.get_alias() << " : " << dpInfoFedCFGtag <<                               " -> " << o2::dcs::getValue<string>(dpcom) << ", run = " << mCurrentRunNumber << 
-                ", a warning will be issued for the next ones";
+                LOG(alarm) << "First CFGtag change " << dpid.get_alias() << " : " << dpInfoFedCFGtag << " -> " << o2::dcs::getValue<string>(dpcom) << ", run = " << mCurrentRunNumber << ", a warning will be issued for the next ones";
                 mFedCFGtagAlarmCounter++;
-              } else if (mVerbosity > 0) {  
-	        LOG(warn) << "CFGtag change " << dpid.get_alias() << " : " << dpInfoFedCFGtag <<
-		" -> " << o2::dcs::getValue<string>(dpcom) << ", run = " << mCurrentRunNumber;
+              } else if (mVerbosity > 0) {
+                LOG(warn) << "CFGtag change " << dpid.get_alias() << " : " << dpInfoFedCFGtag << " -> " << o2::dcs::getValue<string>(dpcom) << ", run = " << mCurrentRunNumber;
               }
             }
           }
@@ -560,7 +556,7 @@ bool DCSProcessor::updateFedCFGtagDPsCCDB()
   bool retVal = false; // set to 'true' in case at least one DP for run has been processed
 
   // Once updated, do not update again until new run
-  //mShouldUpdateFedCFGtag = false; 
+  // mShouldUpdateFedCFGtag = false;
 
   for (const auto& it : mPids) {
     const auto& type = it.first.get_type();
@@ -580,9 +576,9 @@ bool DCSProcessor::updateFedCFGtagDPsCCDB()
   md["responsible"] = "Leonardo Barreto";
   md["runNumber"] = std::to_string(mCurrentRunNumber);
   // TODO: define mFedStartTS and mFedEndTS, use same setup as env for now
-  o2::calibration::Utils::prepareCCDBobjectInfo(mTRDDCSFedCFGtag, mCcdbFedCFGtagDPsInfo, 
-    "TRD/Calib/DCSDPsFedCFGtag", md, mFedCFGtagStartTS, mFedCFGtagStartTS + 3 * o2::ccdb::CcdbObjectInfo::DAY);
- 
+  o2::calibration::Utils::prepareCCDBobjectInfo(mTRDDCSFedCFGtag, mCcdbFedCFGtagDPsInfo,
+                                                "TRD/Calib/DCSDPsFedCFGtag", md, mFedCFGtagStartTS, mFedCFGtagStartTS + 3 * o2::ccdb::CcdbObjectInfo::DAY);
+
   return retVal;
 }
 

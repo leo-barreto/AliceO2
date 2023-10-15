@@ -126,19 +126,19 @@ class DCSProcessor
   std::unordered_map<DPID, float> mTRDDCSVoltages;                ///< anode and drift voltages
   std::unordered_map<DPID, TRDDCSMinMaxMeanInfo> mTRDDCSEnv;      ///< environment parameters (temperatures, pressures)
   std::unordered_map<DPID, int> mTRDDCSRun;                       ///< run number and run type
-  
+
   // TODO
   // Possibly add CFG tag and chamber status here?
   // Or send errors to the InfoLogger in case CFG tag mismatches are detected for chamber which have the same FSM state?
   // For this I need more information on the chamber status - which status indicates all good and included in data taking?
   // not TODO
   // I don't think the FED ENV temperature is needed at analysis level at any point in time so I am leaving it out for now
- 
+
   // LB: new DPs for Fed and Cavern
-  std::unordered_map<DPID, int> mTRDDCSFedChamberStatus;          ///< fed chamber status
-  std::unordered_map<DPID, string> mTRDDCSFedCFGtag;              ///< fed config tag
-  std::unordered_map<DPID, float> mTRDDCSFedEnvTemp;              ///< fed env temperature
-  std::unordered_map<DPID, float> mTRDDCSCavern;                  ///< cavern humidity
+  std::unordered_map<DPID, int> mTRDDCSFedChamberStatus; ///< fed chamber status
+  std::unordered_map<DPID, string> mTRDDCSFedCFGtag;     ///< fed config tag
+  std::unordered_map<DPID, float> mTRDDCSFedEnvTemp;     ///< fed env temperature
+  std::unordered_map<DPID, float> mTRDDCSCavern;         ///< cavern humidity
 
   // helper variables
   std::unordered_map<DPID, bool> mPids;                 ///< flag for each DP whether it has been processed at least once
@@ -187,7 +187,7 @@ class DCSProcessor
   int mFedCFGtagAlarmCounter{0};
   int mFedAlarmCounterMax{1};
   // LB: for testing runNo object, turned off for now
-  //int mFinishedRunNumber;
+  // int mFinishedRunNumber;
 
   // settings
   int mVerbosity{0};

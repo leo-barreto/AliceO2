@@ -185,7 +185,7 @@ class TRDDCSDataProcessor : public o2::framework::Task
       sendDPsoutputEnv(pc.outputs());
       mTimerEnv = timeNow;
     }
-    
+
     // LB: processing logic for FedChamberStatus and FedCFGtag
     if (mProcessor->shouldUpdateFedChamberStatus()) {
       sendDPsoutputFedChamberStatus(pc.outputs());
@@ -194,14 +194,14 @@ class TRDDCSDataProcessor : public o2::framework::Task
     if (mProcessor->shouldUpdateFedCFGtag()) {
       sendDPsoutputFedCFGtag(pc.outputs());
     }
-    
+
     // LB: new DP for FedEnvTemp
     auto elapsedTimeFedEnvTemp = timeNow - mTimerFedEnvTemp; // in ns
     if (elapsedTimeFedEnvTemp.count() * 1e-9 >= mFedEnvTempDPsUpdateInterval) {
       sendDPsoutputFedEnvTemp(pc.outputs());
       mTimerFedEnvTemp = timeNow;
     }
-    
+
     // LB: new DP for Cavern
     auto elapsedTimeCavern = timeNow - mTimerCavern; // in ns
     if (elapsedTimeCavern.count() * 1e-9 >= mCavernDPsUpdateInterval) {
@@ -477,7 +477,6 @@ DataProcessorSpec getTRDDCSDataProcessorSpec()
             {"DPs-update-interval-gas", VariantType::Int64, 900ll, {"Interval (in s) after which to update the DPs CCDB entry for gas parameters"}},
             {"DPs-update-interval-fedenv", VariantType::Int64, 1800ll, {"Interval (in s) after which to update the DPs CCDB entry for front end device environment parameters"}},
             {"DPs-update-interval-cavern", VariantType::Int64, 7200ll, {"Interval (in s) after which to update the DPs CCDB entry for cavern parameters"}}}};
-
 }
 
 } // namespace framework
