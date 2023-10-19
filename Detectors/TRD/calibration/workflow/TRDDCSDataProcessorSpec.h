@@ -360,8 +360,8 @@ class TRDDCSDataProcessor : public o2::framework::Task
       auto image = o2::ccdb::CcdbApi::createObjectImage(&payload, &info);
       LOG(info) << "Sending object " << info.getPath() << "/" << info.getFileName() << " of size " << image->size()
                 << " bytes, valid for " << info.getStartValidityTimestamp() << " : " << info.getEndValidityTimestamp();
-      output.snapshot(Output{o2::calibration::Utils::gDataOriginCDBPayload, "TRD_DCSFedDPs", 0}, *image.get());
-      output.snapshot(Output{o2::calibration::Utils::gDataOriginCDBWrapper, "TRD_DCSFedDPs", 0}, info);
+      output.snapshot(Output{o2::calibration::Utils::gDataOriginCDBPayload, "TRD_ChamberStat", 0}, *image.get());
+      output.snapshot(Output{o2::calibration::Utils::gDataOriginCDBWrapper, "TRD_ChamberStat", 0}, info);
       mProcessor->clearFedChamberStatusDPsInfo();
     } else {
       auto& info = mProcessor->getccdbFedChamberStatusDPsInfo();
@@ -380,8 +380,8 @@ class TRDDCSDataProcessor : public o2::framework::Task
       auto image = o2::ccdb::CcdbApi::createObjectImage(&payload, &info);
       LOG(info) << "Sending object " << info.getPath() << "/" << info.getFileName() << " of size " << image->size()
                 << " bytes, valid for " << info.getStartValidityTimestamp() << " : " << info.getEndValidityTimestamp();
-      output.snapshot(Output{o2::calibration::Utils::gDataOriginCDBPayload, "TRD_DCSFedDPs", 0}, *image.get());
-      output.snapshot(Output{o2::calibration::Utils::gDataOriginCDBWrapper, "TRD_DCSFedDPs", 0}, info);
+      output.snapshot(Output{o2::calibration::Utils::gDataOriginCDBPayload, "TRD_CFGtag", 0}, *image.get());
+      output.snapshot(Output{o2::calibration::Utils::gDataOriginCDBWrapper, "TRD_CFGtag", 0}, info);
       mProcessor->clearFedCFGtagDPsInfo();
     } else {
       auto& info = mProcessor->getccdbFedCFGtagDPsInfo();
@@ -400,8 +400,8 @@ class TRDDCSDataProcessor : public o2::framework::Task
       auto image = o2::ccdb::CcdbApi::createObjectImage(&payload, &info);
       LOG(info) << "Sending object " << info.getPath() << "/" << info.getFileName() << " of size " << image->size()
                 << " bytes, valid for " << info.getStartValidityTimestamp() << " : " << info.getEndValidityTimestamp();
-      output.snapshot(Output{o2::calibration::Utils::gDataOriginCDBPayload, "TRD_DCSFedDPs", 0}, *image.get());
-      output.snapshot(Output{o2::calibration::Utils::gDataOriginCDBWrapper, "TRD_DCSFedDPs", 0}, info);
+      output.snapshot(Output{o2::calibration::Utils::gDataOriginCDBPayload, "TRD_EnvTemp", 0}, *image.get());
+      output.snapshot(Output{o2::calibration::Utils::gDataOriginCDBWrapper, "TRD_EnvTemp", 0}, info);
       mProcessor->clearFedEnvTempDPsInfo();
     } else {
       auto& info = mProcessor->getccdbFedEnvTempDPsInfo();
@@ -452,12 +452,12 @@ DataProcessorSpec getTRDDCSDataProcessorSpec()
   outputs.emplace_back(ConcreteDataTypeMatcher{o2::calibration::Utils::gDataOriginCDBWrapper, "TRD_DCSEnvDPs"});
   // LB: new DPs for Fed and Cavern
   // Must use reduced names due to initializer string cannot exceed descriptor size in Data Format
-  outputs.emplace_back(ConcreteDataTypeMatcher{o2::calibration::Utils::gDataOriginCDBPayload, "TRD_DCSFedDPs"});
-  outputs.emplace_back(ConcreteDataTypeMatcher{o2::calibration::Utils::gDataOriginCDBPayload, "TRD_DCSFedDPs"});
-  outputs.emplace_back(ConcreteDataTypeMatcher{o2::calibration::Utils::gDataOriginCDBWrapper, "TRD_DCSFedDPs"});
-  outputs.emplace_back(ConcreteDataTypeMatcher{o2::calibration::Utils::gDataOriginCDBWrapper, "TRD_DCSFedDPs"});
-  outputs.emplace_back(ConcreteDataTypeMatcher{o2::calibration::Utils::gDataOriginCDBPayload, "TRD_DCSFedDPs"});
-  outputs.emplace_back(ConcreteDataTypeMatcher{o2::calibration::Utils::gDataOriginCDBWrapper, "TRD_DCSFedDPs"});
+  outputs.emplace_back(ConcreteDataTypeMatcher{o2::calibration::Utils::gDataOriginCDBPayload, "TRD_ChamberStat"});
+  outputs.emplace_back(ConcreteDataTypeMatcher{o2::calibration::Utils::gDataOriginCDBWrapper, "TRD_ChamberStat"});
+  outputs.emplace_back(ConcreteDataTypeMatcher{o2::calibration::Utils::gDataOriginCDBPayload, "TRD_CFGtag"});
+  outputs.emplace_back(ConcreteDataTypeMatcher{o2::calibration::Utils::gDataOriginCDBWrapper, "TRD_CFGtag"});
+  outputs.emplace_back(ConcreteDataTypeMatcher{o2::calibration::Utils::gDataOriginCDBPayload, "TRD_EnvTemp"});
+  outputs.emplace_back(ConcreteDataTypeMatcher{o2::calibration::Utils::gDataOriginCDBWrapper, "TRD_EnvTemp"});
   outputs.emplace_back(ConcreteDataTypeMatcher{o2::calibration::Utils::gDataOriginCDBPayload, "TRD_DCSCavernDPs"});
   outputs.emplace_back(ConcreteDataTypeMatcher{o2::calibration::Utils::gDataOriginCDBWrapper, "TRD_DCSCavernDPs"});
 
