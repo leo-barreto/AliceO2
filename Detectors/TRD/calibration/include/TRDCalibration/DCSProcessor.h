@@ -82,22 +82,18 @@ class DCSProcessor
   CcdbObjectInfo& getccdbCurrentsDPsInfo() { return mCcdbCurrentsDPsInfo; }
   CcdbObjectInfo& getccdbEnvDPsInfo() { return mCcdbEnvDPsInfo; }
   CcdbObjectInfo& getccdbRunDPsInfo() { return mCcdbRunDPsInfo; }
+  CcdbObjectInfo& getccdbFedChamberStatusDPsInfo() { return mCcdbFedChamberStatusDPsInfo; }
+  CcdbObjectInfo& getccdbFedCFGtagDPsInfo() { return mCcdbFedCFGtagDPsInfo; }
+  CcdbObjectInfo& getccdbFedEnvTempDPsInfo() { return mCcdbFedEnvTempDPsInfo; }
+  CcdbObjectInfo& getccdbCavernDPsInfo() { return mCcdbCavernDPsInfo; }
   const std::unordered_map<DPID, TRDDCSMinMaxMeanInfo>& getTRDGasDPsInfo() const { return mTRDDCSGas; }
   const std::unordered_map<DPID, float>& getTRDVoltagesDPsInfo() const { return mTRDDCSVoltages; }
   const std::unordered_map<DPID, TRDDCSMinMaxMeanInfo>& getTRDCurrentsDPsInfo() const { return mTRDDCSCurrents; }
   const std::unordered_map<DPID, TRDDCSMinMaxMeanInfo>& getTRDEnvDPsInfo() const { return mTRDDCSEnv; }
   const std::unordered_map<DPID, int>& getTRDRunDPsInfo() const { return mTRDDCSRun; }
-  // LB: new DPs for Fed and Cavern
-  CcdbObjectInfo& getccdbFedChamberStatusDPsInfo() { return mCcdbFedChamberStatusDPsInfo; }
   const std::unordered_map<DPID, int>& getTRDFedChamberStatusDPsInfo() const { return mTRDDCSFedChamberStatus; }
-
-  CcdbObjectInfo& getccdbFedCFGtagDPsInfo() { return mCcdbFedCFGtagDPsInfo; }
   const std::unordered_map<DPID, string>& getTRDFedCFGtagDPsInfo() const { return mTRDDCSFedCFGtag; }
-
-  CcdbObjectInfo& getccdbFedEnvTempDPsInfo() { return mCcdbFedEnvTempDPsInfo; }
   const std::unordered_map<DPID, float>& getTRDFedEnvTempDPsInfo() const { return mTRDDCSFedEnvTemp; }
-
-  CcdbObjectInfo& getccdbCavernDPsInfo() { return mCcdbCavernDPsInfo; }
   const std::unordered_map<DPID, float>& getTRDCavernDPsInfo() const { return mTRDDCSCavern; }
 
   // settings
@@ -126,14 +122,6 @@ class DCSProcessor
   std::unordered_map<DPID, float> mTRDDCSVoltages;                ///< anode and drift voltages
   std::unordered_map<DPID, TRDDCSMinMaxMeanInfo> mTRDDCSEnv;      ///< environment parameters (temperatures, pressures)
   std::unordered_map<DPID, int> mTRDDCSRun;                       ///< run number and run type
-
-  // TODO
-  // Possibly add CFG tag and chamber status here?
-  // Or send errors to the InfoLogger in case CFG tag mismatches are detected for chamber which have the same FSM state?
-  // For this I need more information on the chamber status - which status indicates all good and included in data taking?
-  // not TODO
-  // I don't think the FED ENV temperature is needed at analysis level at any point in time so I am leaving it out for now
-
   // LB: new DPs for Fed and Cavern
   std::unordered_map<DPID, int> mTRDDCSFedChamberStatus; ///< fed chamber status
   std::unordered_map<DPID, string> mTRDDCSFedCFGtag;     ///< fed config tag
