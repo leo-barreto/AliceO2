@@ -256,7 +256,7 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
             if (mPids[dpid] && !mShouldUpdateFedChamberStatus) {
               // Issue an alarm if counter is lower than maximum, warning otherwise
               if (mFedChamberStatusAlarmCounter < mFedAlarmCounterMax) {
-                LOG(alarm) << "First ChamberStatus change " << dpid.get_alias() << " : " << dpInfoFedChamberStatus << " -> " << o2::dcs::getValue<int>(dpcom) << ", run = " << mCurrentRunNumber << ", a warning will be issued for the next ones";
+                LOG(alarm) << "ChamberStatus change " << dpid.get_alias() << " : " << dpInfoFedChamberStatus << " -> " << o2::dcs::getValue<int>(dpcom) << ", run = " << mCurrentRunNumber;
                 mFedChamberStatusAlarmCounter++;
               } else if (mVerbosity > 0) {
                 LOG(warn) << "ChamberStatus change " << dpid.get_alias() << " : " << dpInfoFedChamberStatus << " -> " << o2::dcs::getValue<int>(dpcom) << ", run = " << mCurrentRunNumber;
@@ -284,7 +284,7 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
             if (mPids[dpid] && !mShouldUpdateFedChamberStatus) {
               // Issue an alarm if counter is lower than maximum, warning otherwise
               if (mFedCFGtagAlarmCounter < mFedAlarmCounterMax) {
-                LOG(alarm) << "First CFGtag change " << dpid.get_alias() << " : " << dpInfoFedCFGtag << " -> " << o2::dcs::getValue<string>(dpcom) << ", run = " << mCurrentRunNumber << ", a warning will be issued for the next ones";
+                LOG(alarm) << "CFGtag change " << dpid.get_alias() << " : " << dpInfoFedCFGtag << " -> " << o2::dcs::getValue<string>(dpcom) << ", run = " << mCurrentRunNumber;
                 mFedCFGtagAlarmCounter++;
               } else if (mVerbosity > 0) {
                 LOG(warn) << "CFGtag change " << dpid.get_alias() << " : " << dpInfoFedCFGtag << " -> " << o2::dcs::getValue<string>(dpcom) << ", run = " << mCurrentRunNumber;

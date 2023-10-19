@@ -133,6 +133,14 @@ class TRDDCSDataProcessor : public o2::framework::Task
       LOG(info) << "Using verbose mode for TRD DCS processor";
       mProcessor->setVerbosity(verbosity);
     }
+    // LB: set maximum number of alarms in change in FedChamberStatus and FedCFGtag
+    int alarmfed = ic.options().get<int>("DPs-max-counter-alarm-fed");
+    if (alarmfed > 0) {
+      LOG(info) << "Setting max number of alarms in FED objects changes to " << alarmfed;
+      mProcessor->setMaxCounterAlarmFed(alarmfed);
+    } else {
+      LOG(info) << "Invalid max number of alarms in FED objects changes " << alarmfed << ", using default value of 1";
+    }
     mProcessor->init(vect);
     mTimerGas = std::chrono::high_resolution_clock::now();
     mTimerVoltages = mTimerGas;
@@ -476,7 +484,8 @@ DataProcessorSpec getTRDDCSDataProcessorSpec()
             {"DPs-min-update-interval-voltages", VariantType::Int64, 120ll, {"Minimum range to be covered by voltage CCDB object"}},
             {"DPs-update-interval-gas", VariantType::Int64, 900ll, {"Interval (in s) after which to update the DPs CCDB entry for gas parameters"}},
             {"DPs-update-interval-fedenv", VariantType::Int64, 1800ll, {"Interval (in s) after which to update the DPs CCDB entry for front end device environment parameters"}},
-            {"DPs-update-interval-cavern", VariantType::Int64, 7200ll, {"Interval (in s) after which to update the DPs CCDB entry for cavern parameters"}}}};
+            {"DPs-update-interval-cavern", VariantType::Int64, 7200ll, {"Interval (in s) after which to update the DPs CCDB entry for cavern parameters"}},
+            {"DPs-max-counter-alarm-fed", VariantType::Int, 1, {"Maximum number of alarms after FedChamberStatus and FedCFGtag changes, following changes are logged as warnings"}}}};
 }
 
 } // namespace framework

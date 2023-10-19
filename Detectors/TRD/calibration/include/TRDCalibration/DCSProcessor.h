@@ -99,6 +99,7 @@ class DCSProcessor
   // settings
   void setCurrentTS(TFType tf) { mCurrentTS = tf; }
   void setVerbosity(int v) { mVerbosity = v; }
+  void setMaxCounterAlarmFed(int alarmfed) { mFedAlarmCounterMax = alarmfed; }
 
   // reset methods
   void clearGasDPsInfo();
@@ -173,12 +174,12 @@ class DCSProcessor
   int mCurrentRunNumber;
   int mFedChamberStatusAlarmCounter{0};
   int mFedCFGtagAlarmCounter{0};
-  int mFedAlarmCounterMax{1};
   // LB: for testing runNo object, turned off for now
   // int mFinishedRunNumber;
 
   // settings
   int mVerbosity{0};
+  int mFedAlarmCounterMax{1};
 
   ClassDefNV(DCSProcessor, 0);
 };
