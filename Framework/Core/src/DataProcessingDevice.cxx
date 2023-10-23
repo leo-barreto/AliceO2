@@ -172,7 +172,8 @@ DataProcessingDevice::DataProcessingDevice(RunningDeviceRef running, ServiceRegi
     }
   };
 
-  this->SubscribeToStateChange("dpl", stateWatcher);
+  // 99 is to execute DPL callbacks last
+  this->SubscribeToStateChange("99-dpl", stateWatcher);
 
   // One task for now.
   mStreams.resize(1);
@@ -956,9 +957,12 @@ void DataProcessingDevice::InitTask()
       LOG(detail) << "ptr: " << info.ptr;
       LOG(detail) << "size: " << info.size;
       LOG(detail) << "flags: " << info.flags;
-      context.expectedRegionCallbacks -= 1;
+      // Now we check for pending events with the mutex,
+      // so the lines below are atomic.
       pendingRegionInfos.push_back(info);
-      // We always want to handle these on the main loop
+      context.expectedRegionCallbacks -= 1;
+      // We always want to handle these on the main loop,
+      // so we awake it.
       ServiceRegistryRef ref{registry};
       uv_async_send(ref.get<DeviceState>().awakeMainThread);
     });
@@ -990,11 +994,17 @@ void DataProcessingDevice::InitTask()
   // We will get there.
   this->fillContext(mServiceRegistry.get<DataProcessorContext>(ServiceRegistry::globalDeviceSalt()), deviceContext);
 
+  auto hasPendingEvents = [&mutex = mRegionInfoMutex, &pendingRegionInfos = mPendingRegionInfos](DeviceContext& deviceContext) {
+    std::lock_guard<std::mutex> lock(mutex);
+    return (pendingRegionInfos.empty() == false) || deviceContext.expectedRegionCallbacks > 0;
+  };
   /// We now run an event loop also in InitTask. This is needed to:
   /// * Make sure region registration callbacks are invoked
   /// on the main thread.
   /// * Wait for enough callbacks to be delivered before moving to START
-  while (deviceContext.expectedRegionCallbacks > 0 && uv_run(state.loop, UV_RUN_ONCE)) {
+  while (hasPendingEvents(deviceContext)) {
+    // Wait for the callback to signal its done, so that we do not busy wait.
+    uv_run(state.loop, UV_RUN_ONCE);
     // Handle callbacks if any
     {
       std::lock_guard<std::mutex> lock(mRegionInfoMutex);
@@ -1499,6 +1509,10 @@ void DataProcessingDevice::doPrepare(ServiceRegistryRef ref)
       continue;
     }
     if (info.channel == nullptr) {
+      continue;
+    }
+    // Only poll DPL channels for now.
+    if (info.channelType != ChannelAccountingType::DPL) {
       continue;
     }
     auto& socket = info.channel->GetSocket();
@@ -2288,6 +2302,15 @@ bool DataProcessingDevice::tryDispatchComputation(ServiceRegistryRef ref, std::v
         if (context.isSink && action.op == CompletionPolicy::CompletionOp::Consume) {
           auto& allocator = ref.get<DataAllocator>();
           allocator.make<int>(OutputRef{"dpl-summary", compile_time_hash(spec.name.c_str())}, 1);
+        }
+
+        // Extra callback which allows a service to add extra outputs.
+        // This is needed e.g. to ensure that injected CCDB outputs are added
+        // before an end of stream.
+        {
+          ref.get<CallbackService>().call<CallbackService::Id::FinaliseOutputs>(o2::framework::ServiceRegistryRef{ref}, (int)action.op);
+          dpContext.finaliseOutputsCallbacks(processContext);
+          streamContext.finaliseOutputsCallbacks(processContext);
         }
 
         {

@@ -17,6 +17,7 @@
 #include "Framework/InputSpec.h"
 #include "DetectorsCommonDataFormats/DetID.h"
 #include "DataFormatsTPC/WorkflowHelper.h"
+#include "DataFormatsTPC/ZeroSuppression.h"
 #include "DataFormatsTRD/RecoInputContainer.h"
 #include "DataFormatsITSMFT/CompCluster.h"
 #include "DataFormatsITS/TrackITS.h"
@@ -195,12 +196,11 @@ void o2::globaltracking::RecoContainer::createTracksVariadic(T creator, GTrackID
             flagUsed(trc.getRefGlobalTrackId()); // flag seeding ITS-TPC track
             continue;
           }
-          float t0 = t0Trig, t0Err = 5.e-3; // 5ns nominal error
-          if (trc.hasPileUpInfo()) {        // distance to farthest collision within the pileup integration time
-            t0 += trc.getPileUpTimeShiftMUS();
+          float t0Err = 5.e-3;       // 5ns nominal error
+          if (trc.hasPileUpInfo()) { // distance to farthest collision within the pileup integration time
             t0Err += trc.getPileUpTimeErrorMUS();
           }
-          if (creator(trc, {i, currentSource}, t0, t0Err)) { // assign 1ns error to BC
+          if (creator(trc, {i, currentSource}, t0Trig, t0Err)) { // assign 1ns error to BC
             flagUsed(trc.getRefGlobalTrackId());            // flag seeding ITS-TPC track
           }
         }
@@ -248,12 +248,11 @@ void o2::globaltracking::RecoContainer::createTracksVariadic(T creator, GTrackID
             flagUsed(trc.getRefGlobalTrackId()); // flag seeding TPC track
             continue;
           }
-          float t0 = t0Trig, t0Err = 5.e-3; // 5ns nominal error
-          if (trc.hasPileUpInfo()) {        // distance to farthest collision within the pileup integration time
-            t0 += trc.getPileUpTimeShiftMUS();
+          float t0Err = 5.e-3;       // 5ns nominal error
+          if (trc.hasPileUpInfo()) { // distance to farthest collision within the pileup integration time
             t0Err += trc.getPileUpTimeErrorMUS();
           }
-          if (creator(trc, {i, currentSource}, t0, t0Err)) { // assign 1ns error to BC
+          if (creator(trc, {i, currentSource}, t0Trig, t0Err)) { // assign 1ns error to BC
             flagUsed(trc.getRefGlobalTrackId());            // flag seeding TPC track
           }
         }
