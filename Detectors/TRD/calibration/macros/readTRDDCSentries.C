@@ -61,7 +61,7 @@ void readTRDDCSentries(std::string ccdb = "http://localhost:8080", long ts = -1)
   }
   std::cout << std::endl;
 
-  // LB: also read FeChamberStatus and FedCFGtag for testing
+  // LB: also read FedChamberStatus and FedCFGtag for testing
   // There seems to be an issue with the validity timestamp of Run DPs, ignoring them at the moment
   // Access FedChamberStatus DPs
   auto calchamberstatus = ccdbmgr.get<unordered_map<o2::dcs::DataPointIdentifier, int>>("TRD/Calib/DCSDPsFedChamberStatus");
@@ -79,6 +79,26 @@ void readTRDDCSentries(std::string ccdb = "http://localhost:8080", long ts = -1)
   for (const auto& entry : *calcfgtag) {
     std::cout << "id =  " << entry.first << ",\tvalue =  " << entry.second << std::endl;
   }
+  std::cout << std::endl;
+
+  // Access FedEnvTemp DPs
+  auto calfedenvtemp = ccdbmgr.get<unordered_map<o2::dcs::DataPointIdentifier, o2::trd::TRDDCSMinMaxMeanInfo>>("TRD/Calib/DCSDPsFedEnvTemp");
+
+  for (const auto& entry : *calfedenvtemp) {
+    std::cout << entry.first << std::endl;
+    entry.second.print();
+    std::cout << std::endl;
+  }
+
+  // Access Cavern DPs
+  auto calcavern = ccdbmgr.get<unordered_map<o2::dcs::DataPointIdentifier, o2::trd::TRDDCSMinMaxMeanInfo>>("TRD/Calib/DCSDPsCavern");
+
+  for (const auto& entry : *calcavern) {
+    std::cout << entry.first << std::endl;
+    entry.second.print();
+    std::cout << std::endl;
+  }
+
   std::cout << std::endl;
 
   return;

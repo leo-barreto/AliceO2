@@ -93,8 +93,8 @@ class DCSProcessor
   const std::unordered_map<DPID, int>& getTRDRunDPsInfo() const { return mTRDDCSRun; }
   const std::unordered_map<DPID, int>& getTRDFedChamberStatusDPsInfo() const { return mTRDDCSFedChamberStatus; }
   const std::unordered_map<DPID, string>& getTRDFedCFGtagDPsInfo() const { return mTRDDCSFedCFGtag; }
-  const std::unordered_map<DPID, float>& getTRDFedEnvTempDPsInfo() const { return mTRDDCSFedEnvTemp; }
-  const std::unordered_map<DPID, float>& getTRDCavernDPsInfo() const { return mTRDDCSCavern; }
+  const std::unordered_map<DPID, TRDDCSMinMaxMeanInfo>& getTRDFedEnvTempDPsInfo() const { return mTRDDCSFedEnvTemp; }
+  const std::unordered_map<DPID, TRDDCSMinMaxMeanInfo>& getTRDCavernDPsInfo() const { return mTRDDCSCavern; }
 
   // settings
   void setCurrentTS(TFType tf) { mCurrentTS = tf; }
@@ -124,10 +124,10 @@ class DCSProcessor
   std::unordered_map<DPID, TRDDCSMinMaxMeanInfo> mTRDDCSEnv;      ///< environment parameters (temperatures, pressures)
   std::unordered_map<DPID, int> mTRDDCSRun;                       ///< run number and run type
   // LB: new DPs for Fed and Cavern
-  std::unordered_map<DPID, int> mTRDDCSFedChamberStatus; ///< fed chamber status
-  std::unordered_map<DPID, string> mTRDDCSFedCFGtag;     ///< fed config tag
-  std::unordered_map<DPID, float> mTRDDCSFedEnvTemp;     ///< fed env temperature
-  std::unordered_map<DPID, float> mTRDDCSCavern;         ///< cavern humidity
+  std::unordered_map<DPID, int> mTRDDCSFedChamberStatus;            ///< fed chamber status
+  std::unordered_map<DPID, string> mTRDDCSFedCFGtag;                ///< fed config tag
+  std::unordered_map<DPID, TRDDCSMinMaxMeanInfo> mTRDDCSFedEnvTemp; ///< fed env temperature
+  std::unordered_map<DPID, TRDDCSMinMaxMeanInfo> mTRDDCSCavern;     ///< cavern humidity
 
   // helper variables
   std::unordered_map<DPID, bool> mPids;                 ///< flag for each DP whether it has been processed at least once

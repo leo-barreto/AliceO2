@@ -172,9 +172,9 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
           mFedEnvTempStartTSSet = true;
         }
         auto& dpInfoFedEnvTemp = mTRDDCSFedEnvTemp[dpid];
-        if (etime != mLastDPTimeStamps[dpid]) {
-          // only add data point in case last one was not already read before (every 0.5 hours)
-          dpInfoFedEnvTemp = o2::dcs::getValue<double>(dpcom);
+        if (dpInfoFedEnvTemp.nPoints == 0 || etime != mLastDPTimeStamps[dpid]) {
+          // only add data point in case last one was not already read before
+          dpInfoFedEnvTemp.addPoint(o2::dcs::getValue<double>(dpcom), etime);
           mLastDPTimeStamps[dpid] = etime;
         }
       }
@@ -185,9 +185,9 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
           mCavernStartTSSet = true;
         }
         auto& dpInfoCavern = mTRDDCSCavern[dpid];
-        if (etime != mLastDPTimeStamps[dpid]) {
-          // only add data point in case last one was not already read before (every 2 hours)
-          dpInfoCavern = o2::dcs::getValue<double>(dpcom);
+        if (dpInfoCavern.nPoints == 0 || etime != mLastDPTimeStamps[dpid]) {
+          // only add data point in case last one was not already read before
+          dpInfoCavern.addPoint(o2::dcs::getValue<double>(dpcom), etime);
           mLastDPTimeStamps[dpid] = etime;
         }
       }
@@ -592,7 +592,9 @@ bool DCSProcessor::updateFedEnvTempDPsCCDB()
           retVal = true;
         }
         if (mVerbosity > 1) {
-          LOG(info) << "PID = " << it.first.get_alias() << ". Value = " << mTRDDCSFedEnvTemp[it.first];
+          //LOG(info) << "PID = " << it.first.get_alias() << ". Value = " << mTRDDCSFedEnvTemp[it.first];
+          LOG(info) << "PID = " << it.first.get_alias();
+          mTRDDCSFedEnvTemp[it.first].print();
         }
       }
     }
@@ -622,7 +624,9 @@ bool DCSProcessor::updateCavernDPsCCDB()
           retVal = true;
         }
         if (mVerbosity > 1) {
-          LOG(info) << "PID = " << it.first.get_alias() << ". Value = " << mTRDDCSCavern[it.first];
+          //LOG(info) << "PID = " << it.first.get_alias() << ". Value = " << mTRDDCSCavern[it.first];
+          LOG(info) << "PID = " << it.first.get_alias();
+          mTRDDCSCavern[it.first].print();
         }
       }
     }
