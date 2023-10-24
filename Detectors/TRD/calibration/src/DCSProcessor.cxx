@@ -224,26 +224,7 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
           LOG(info) << "Current Run Number: " << mCurrentRunNumber;
         }
 
-      } else if (std::strstr(dpid.get_alias(), "trd_runType") != nullptr) { // DP is trd_runType
-        if (!mRunStartTSSet) {
-          mRunStartTS = mCurrentTS;
-          mRunStartTSSet = true;
-        }
-        auto& runType = mTRDDCSRun[dpid];
-        if (mPids[dpid] && runType != o2::dcs::getValue<int32_t>(dpcom)) {
-          LOG(info) << "Run type has already been processed and the new one " << o2::dcs::getValue<int32_t>(dpcom) << " differs from the old one " << runType;
-          mShouldUpdateRun = true;
-          mRunEndTS = mCurrentTS;
-        } else {
-          runType = o2::dcs::getValue<int32_t>(dpcom);
-        }
-
-        if (mVerbosity > 2) {
-          LOG(info) << "Current Run Type: " << o2::dcs::getValue<int32_t>(dpcom);
-        }
-      }
-
-      if (std::strstr(dpid.get_alias(), "trd_fedChamberStatus") != nullptr) { // DP is trd_fedChamberStatus
+      } else if (std::strstr(dpid.get_alias(), "trd_fedChamberStatus") != nullptr) { // DP is trd_fedChamberStatus
         if (!mFedChamberStatusStartTSSet) {
           mFedChamberStatusStartTS = mCurrentTS;
           mFedChamberStatusStartTSSet = true;
