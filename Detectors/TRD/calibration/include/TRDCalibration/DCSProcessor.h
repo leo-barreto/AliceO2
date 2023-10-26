@@ -73,8 +73,9 @@ class DCSProcessor
   // signal that the CCDB object for the voltages should be updated due to change exceeding threshold
   bool shouldUpdateVoltages() const { return mShouldUpdateVoltages; }
   bool shouldUpdateRun() const { return mShouldUpdateRun; }
-  bool shouldUpdateFedChamberStatus() const { return mShouldUpdateFedChamberStatus; }
-  bool shouldUpdateFedCFGtag() const { return mShouldUpdateFedCFGtag; }
+  // LB: Only update ChamberStatus/CFGtag if both conditions are met (complete DPs and new run)
+  bool shouldUpdateFedChamberStatus() const { return mShouldUpdateFedChamberStatus && mShouldUpdateRun; }
+  bool shouldUpdateFedCFGtag() const { return mShouldUpdateFedCFGtag && mShouldUpdateRun; }
 
   // allow access to the CCDB objects from DPL processor
   CcdbObjectInfo& getccdbGasDPsInfo() { return mCcdbGasDPsInfo; }
@@ -172,7 +173,7 @@ class DCSProcessor
   // LB: FedChamberStatus and FedCFGtag logic
   bool mShouldUpdateFedChamberStatus{false};
   bool mShouldUpdateFedCFGtag{false};
-  int mCurrentRunNumber;
+  int mCurrentRunNumber{-1};
   int mFedChamberStatusAlarmCounter{0};
   int mFedCFGtagAlarmCounter{0};
   // LB: for testing runNo object, turned off for now

@@ -239,24 +239,21 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
 
         auto& runNumber = mTRDDCSRun[dpid];
 
-        // LB: Once new run begins, update ChamberStatus and CFGtag, no need to be a processed one already
-        if (runNumber != o2::dcs::getValue<int32_t>(dpcom)) {
-          mShouldUpdateFedChamberStatus = true;
-          mShouldUpdateFedCFGtag = true;
+        // LB: Check if new value is a valid run number (0 = cleared variable)
+        if (o2::dcs::getValue<int32_t>(dpcom) > 0) {
+          // If value has changed from previous one, new run has begun and update
+          if (o2::dcs::getValue<int32_t>(dpcom) != mCurrentRunNumber) {
+            LOG(info) << "New run number " << o2::dcs::getValue<int32_t>(dpcom) << " differs from the old one " << mCurrentRunNumber;
+            mShouldUpdateRun = true;
+            mRunEndTS = mCurrentTS;
+          }
+
+          // LB: Save current run number
+          mCurrentRunNumber = o2::dcs::getValue<int32_t>(dpcom);
+          // Save to mTRDDCSRun
+          runNumber = mCurrentRunNumber;
         }
 
-        // Check if run already processed has changed. If true, update "old" run (i.e. when new run starts)
-        if (mPids[dpid] && runNumber != o2::dcs::getValue<int32_t>(dpcom)) {
-          LOG(info) << "Run number has already been processed and the new one " << o2::dcs::getValue<int32_t>(dpcom) << " differs from the old one " << runNumber;
-          mShouldUpdateRun = true;
-          mRunEndTS = mCurrentTS;
-          // mFinishedRunNumber = runNumber;
-        } else {
-          runNumber = o2::dcs::getValue<int32_t>(dpcom);
-        }
-
-        // Always save current run number
-        mCurrentRunNumber = o2::dcs::getValue<int32_t>(dpcom);
         if (mVerbosity > 2) {
           LOG(info) << "Current Run Number: " << mCurrentRunNumber;
         }
@@ -270,8 +267,8 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
         auto& dpInfoFedChamberStatus = mTRDDCSFedChamberStatus[dpid];
         if (etime != mLastDPTimeStamps[dpid]) {
           if (dpInfoFedChamberStatus != o2::dcs::getValue<int>(dpcom)) {
-            // If value changes after processing, log change as warning (for now)
-            if (mPids[dpid] && !mShouldUpdateFedChamberStatus) {
+            // If value changes after processing and DPs should not be updated, log change as warning (for now)
+            if (mPids[dpid] && !(mShouldUpdateFedChamberStatus && mShouldUpdateRun)) {
               // Issue an alarm if counter is lower than maximum, warning otherwise
               if (mFedChamberStatusAlarmCounter < mFedAlarmCounterMax) {
                 LOG(alarm) << "ChamberStatus change " << dpid.get_alias() << " : " << dpInfoFedChamberStatus << " -> " << o2::dcs::getValue<int>(dpcom) << ", run = " << mCurrentRunNumber;
@@ -298,8 +295,8 @@ int DCSProcessor::processDP(const DPCOM& dpcom)
         auto& dpInfoFedCFGtag = mTRDDCSFedCFGtag[dpid];
         if (etime != mLastDPTimeStamps[dpid]) {
           if (dpInfoFedCFGtag != o2::dcs::getValue<string>(dpcom)) {
-            // If value changes after processing, log change as warning (for now)
-            if (mPids[dpid] && !mShouldUpdateFedChamberStatus) {
+            // If value changes after processing and DPs should not be updated, log change as warning (for now)
+            if (mPids[dpid] && !(mShouldUpdateFedCFGtag && mShouldUpdateRun)) {
               // Issue an alarm if counter is lower than maximum, warning otherwise
               if (mFedCFGtagAlarmCounter < mFedAlarmCounterMax) {
                 LOG(alarm) << "CFGtag change " << dpid.get_alias() << " : " << dpInfoFedCFGtag << " -> " << o2::dcs::getValue<string>(dpcom) << ", run = " << mCurrentRunNumber;
