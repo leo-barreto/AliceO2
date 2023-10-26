@@ -364,7 +364,8 @@ class TRDDCSDataProcessor : public o2::framework::Task
       mProcessor->clearRunDPsInfo();
     } else {
       auto& info = mProcessor->getccdbRunDPsInfo();
-      LOG(info) << "Not sending object " << info.getPath() << "/" << info.getFileName() << " since no DPs were processed for it";
+      // LOG(info) << "Not sending object " << info.getPath() << "/" << info.getFileName() << " since no DPs were processed for it";
+      LOG(info) << "Not sending object " << info.getPath() << "/" << info.getFileName() << " as upload of Run DPs was deactivated";
     }
   }
 

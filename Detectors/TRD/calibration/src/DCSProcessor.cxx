@@ -525,6 +525,9 @@ bool DCSProcessor::updateRunDPsCCDB()
   // md["runNumber"] = std::to_string(mFinishedRunNumber);
   o2::calibration::Utils::prepareCCDBobjectInfo(mTRDDCSRun, mCcdbRunDPsInfo, "TRD/Calib/DCSDPsRun", md, mRunStartTS, mRunEndTS);
 
+  // LB: Deactivated upload of Run DPs to CCDB even if processed
+  // To turn it back on just comment the next line
+  retVal = false;
   return retVal;
 }
 
