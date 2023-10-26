@@ -100,6 +100,7 @@ class DCSProcessor
   void setCurrentTS(TFType tf) { mCurrentTS = tf; }
   void setVerbosity(int v) { mVerbosity = v; }
   void setMaxCounterAlarmFed(int alarmfed) { mFedAlarmCounterMax = alarmfed; }
+  void setFedMinimunDPsForUpdate(int minupdatefed) { mFedMinimunDPsForUpdate = minupdatefed; }
 
   // reset methods
   void clearGasDPsInfo();
@@ -180,6 +181,7 @@ class DCSProcessor
   // settings
   int mVerbosity{0};
   int mFedAlarmCounterMax{1};
+  int mFedMinimunDPsForUpdate{540};
 
   ClassDefNV(DCSProcessor, 0);
 };

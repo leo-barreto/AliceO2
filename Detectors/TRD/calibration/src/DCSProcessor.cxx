@@ -59,6 +59,43 @@ int DCSProcessor::process(const gsl::span<const DPCOM> dps)
     }
   }
 
+  // LB: check if all ChamberStatus/CFGtag DPs were sent by using a vector and then
+  // checking for duplicates, if new size is equal to 540 => all DPs were sent
+  std::vector<DPID> allChamberStatusDPsid;
+  std::vector<DPID> allCFGtagDPsid;
+  for (const auto& it : dps) {
+    auto& itid = it.id;
+    if (std::strstr(itid.get_alias(), "trd_fedChamberStatus") != nullptr) {
+      allChamberStatusDPsid.push_back(it.id);
+    } else if (std::strstr(itid.get_alias(), "trd_fedCFGtag") != nullptr) {
+      allCFGtagDPsid.push_back(it.id);
+    }
+  }
+
+  // LB: If at least minimum number of DPs are sent, set ChamberStatus/CFGtag update variables to true
+  auto ChamberStatusUniqueIterator = std::unique(allChamberStatusDPsid.begin(), allChamberStatusDPsid.end());
+  auto CFGtagUniqueIterator = std::unique(allCFGtagDPsid.begin(), allCFGtagDPsid.end());
+  int ChamberStatusUniqueDPsCounter = std::distance(allChamberStatusDPsid.begin(), ChamberStatusUniqueIterator);
+  int CFGtagUniqueDPsCounter = std::distance(allCFGtagDPsid.begin(), CFGtagUniqueIterator);
+  if (ChamberStatusUniqueDPsCounter >= mFedMinimunDPsForUpdate) {
+    mShouldUpdateFedChamberStatus = true;
+    if (mVerbosity > 1) {
+      LOG(info) << "Minimum number of required DPs (" << mFedMinimunDPsForUpdate << ") for ChamberStatus update were found.";
+    }
+  }
+
+  if (CFGtagUniqueDPsCounter >= mFedMinimunDPsForUpdate) {
+    mShouldUpdateFedCFGtag = true;
+    if (mVerbosity > 1) {
+      LOG(info) << "Minimum number of required DPs (" << mFedMinimunDPsForUpdate << ") for CFGtag update were found.";
+    }
+  }
+
+  if (mVerbosity > 1) {
+    LOG(info) << "Number of ChamberStatus DPs = " << ChamberStatusUniqueDPsCounter;
+    LOG(info) << "Number of CFGtag DPs = " << CFGtagUniqueDPsCounter;
+  }
+
   // now we process all DPs, one by one
   for (const auto& it : dps) {
     // we process only the DPs defined in the configuration

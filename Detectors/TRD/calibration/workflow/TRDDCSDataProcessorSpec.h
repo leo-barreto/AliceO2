@@ -133,6 +133,7 @@ class TRDDCSDataProcessor : public o2::framework::Task
       LOG(info) << "Using verbose mode for TRD DCS processor";
       mProcessor->setVerbosity(verbosity);
     }
+
     // LB: set maximum number of alarms in change in FedChamberStatus and FedCFGtag
     int alarmfed = ic.options().get<int>("DPs-max-counter-alarm-fed");
     if (alarmfed > 0) {
@@ -141,6 +142,16 @@ class TRDDCSDataProcessor : public o2::framework::Task
     } else {
       LOG(info) << "Invalid max number of alarms in FED objects changes " << alarmfed << ", using default value of 1";
     }
+
+    // LB: set minimum number of DPs in DCS Processor to update ChamberStatus/CFGtag
+    int minupdatefed = ic.options().get<int>("DPs-min-counter-update-fed");
+    if (minupdatefed >= 0 && minupdatefed <= 540) {
+      LOG(info) << "Setting min number of DPs to update ChamberStatus/CFGtag to " << minupdatefed;
+      mProcessor->setFedMinimunDPsForUpdate(minupdatefed);
+    } else {
+      LOG(info) << "Invalid min number of DPs to update ChamberStatus/CFGtag " << alarmfed << ", using default value of 540";
+    }
+
     mProcessor->init(vect);
     mTimerGas = std::chrono::high_resolution_clock::now();
     mTimerVoltages = mTimerGas;
@@ -485,7 +496,8 @@ DataProcessorSpec getTRDDCSDataProcessorSpec()
             {"DPs-update-interval-gas", VariantType::Int64, 900ll, {"Interval (in s) after which to update the DPs CCDB entry for gas parameters"}},
             {"DPs-update-interval-fedenv", VariantType::Int64, 1800ll, {"Interval (in s) after which to update the DPs CCDB entry for front end device environment parameters"}},
             {"DPs-update-interval-cavern", VariantType::Int64, 7200ll, {"Interval (in s) after which to update the DPs CCDB entry for cavern parameters"}},
-            {"DPs-max-counter-alarm-fed", VariantType::Int, 1, {"Maximum number of alarms after FedChamberStatus and FedCFGtag changes, following changes are logged as warnings"}}}};
+            {"DPs-max-counter-alarm-fed", VariantType::Int, 1, {"Maximum number of alarms after FedChamberStatus and FedCFGtag changes, following changes are logged as warnings"}},
+            {"DPs-min-counter-update-fed", VariantType::Int, 540, {"Minimum number of DPs to update FedChamberStatus and FedCFGtag objects"}}}};
 }
 
 } // namespace framework
