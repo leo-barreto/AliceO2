@@ -610,7 +610,7 @@ bool DCSProcessor::updateFedEnvTempDPsCCDB()
           retVal = true;
         }
         if (mVerbosity > 1) {
-          //LOG(info) << "PID = " << it.first.get_alias() << ". Value = " << mTRDDCSFedEnvTemp[it.first];
+          // LOG(info) << "PID = " << it.first.get_alias() << ". Value = " << mTRDDCSFedEnvTemp[it.first];
           LOG(info) << "PID = " << it.first.get_alias();
           mTRDDCSFedEnvTemp[it.first].print();
         }
@@ -642,7 +642,7 @@ bool DCSProcessor::updateCavernDPsCCDB()
           retVal = true;
         }
         if (mVerbosity > 1) {
-          //LOG(info) << "PID = " << it.first.get_alias() << ". Value = " << mTRDDCSCavern[it.first];
+          // LOG(info) << "PID = " << it.first.get_alias() << ". Value = " << mTRDDCSCavern[it.first];
           LOG(info) << "PID = " << it.first.get_alias();
           mTRDDCSCavern[it.first].print();
         }
