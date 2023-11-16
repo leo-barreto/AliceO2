@@ -54,7 +54,7 @@ o2f::InjectorFunction dcs2dpl(std::unordered_map<DPID, o2h::DataDescription>& dp
 {
 
   return [dpid2group, fbiFirst, verbose, FBIPerInterval](o2::framework::TimingInfo& tinfo, framework::ServiceRegistryRef const& services, fair::mq::Parts& parts, o2f::ChannelRetriever channelRetriever, size_t newTimesliceId, bool& stop) -> bool {
-    auto *device = services.get<framework::RawDeviceService>().device();
+    auto* device = services.get<framework::RawDeviceService>().device();
     static std::unordered_map<DPID, DPCOM> cache; // will keep only the latest measurement in the 1-second wide window for each DPID
     static std::unordered_map<std::string, int> sentToChannel;
     static auto timer = std::chrono::high_resolution_clock::now();

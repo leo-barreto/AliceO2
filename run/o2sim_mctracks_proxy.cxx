@@ -94,7 +94,7 @@ InjectorFunction o2simKinematicsConverter(std::vector<OutputSpec> const& specs, 
   auto Nparts = std::make_shared<int>(nPerTF);
 
   return [timesliceId, specs, step, nevents, nPerTF, totalEventCounter, eventCounter, TFcounter, Nparts, MCHeadersMessageCache = MCHeadersMessageCache, MCTracksMessageCache = MCTracksMessageCache](TimingInfo& ti, ServiceRegistryRef const& services, fair::mq::Parts& parts, ChannelRetriever channelRetriever, size_t newTimesliceId, bool& stop) mutable -> bool {
-    auto*device = services.get<RawDeviceService>().device();
+    auto* device = services.get<RawDeviceService>().device();
     bool didSendData = false;
     if (nPerTF < 0) {
       // if no aggregation requested, forward each message with the DPL header

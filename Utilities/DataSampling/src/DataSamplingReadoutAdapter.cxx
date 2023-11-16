@@ -25,7 +25,7 @@ using DataHeader = o2::header::DataHeader;
 InjectorFunction dataSamplingReadoutAdapter(OutputSpec const& spec)
 {
   return [spec](TimingInfo&, ServiceRegistryRef const& ref, fair::mq::Parts& parts, ChannelRetriever channelRetriever, size_t newTimesliceId, bool& stop) {
-    auto *device = ref.get<RawDeviceService>().device();
+    auto* device = ref.get<RawDeviceService>().device();
 
     for (size_t i = 0; i < parts.Size(); ++i) {
 
